@@ -1,6 +1,8 @@
 import markdown  # <--- 記得 import
 from flask import Flask, render_template, jsonify, request
 from models import db, Post, KaggleCompetition
+import bleach
+import os
 
 app = Flask(__name__)
 # 設定 SQLite 資料庫
@@ -8,6 +10,14 @@ app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///database.db'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 db.init_app(app)
+
+# --- 允許的 HTML 標籤白名單 (Whitelist) ---
+ALLOWED_TAGS = [
+    'a', 'abbr', 'acronym', 'b', 'blockquote', 'code', 
+    'em', 'i', 'li', 'ol', 'strong', 'ul', 
+    'h1', 'h2', 'h3', 'p', 'pre', 'br'
+]
+ALLOWED_ATTRIBUTES = {'a': ['href', 'title', 'target']}
 
 # --- 修改 init_data 函式 ---
 def init_data():
@@ -39,7 +49,7 @@ def init_data():
 # --- 啟動區塊 ---
 with app.app_context():
     db.create_all()
-    init_data() # 呼叫這個新的函式
+    #init_data() # 呼叫這個新的函式
 
 # --- 新增路由 ---
 @app.route('/kaggle')
@@ -84,4 +94,5 @@ def get_code_example():
     return jsonify(sample_data)
 
 if __name__ == '__main__':
-    app.run(debug=True)
+    is_debug = os.environ.get('FLASK_DEBUG') == '1'
+    app.run(debug=is_debug)
