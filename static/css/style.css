@@ -1,0 +1,59 @@
+body {
+    background-color: #000;
+    color: #0F0;
+    /* 經典駭客綠 */
+    font-family: 'Courier New', Courier, monospace;
+    /* 等寬字體 */
+    margin: 0;
+    padding: 0;
+    overflow-x: hidden;
+}
+
+a {
+    color: #00FF00;
+    text-decoration: none;
+    border-bottom: 1px dashed #0F0;
+}
+
+a:hover {
+    background-color: #0F0;
+    color: #000;
+}
+
+header,
+footer {
+    padding: 20px;
+    border-bottom: 2px solid #0F0;
+    text-align: center;
+}
+
+.container {
+    width: 80%;
+    margin: 20px auto;
+    position: relative;
+    z-index: 10;
+    background: rgba(0, 0, 0, 0.85);
+    padding: 20px;
+    border: 1px solid #0F0;
+}
+
+/* 程式碼區塊樣式 */
+pre {
+    background: #111;
+    border: 1px solid #333;
+    padding: 15px;
+    color: #fff;
+    overflow-x: auto;
+}
+
+/* 背景特效 Canvas */
+#matrix-canvas {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 0;
+    /* 放在最底層 */
+    pointer-events: none;
+}

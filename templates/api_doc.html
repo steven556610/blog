@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h2>> Accessing the Mainframe API</h2>
+<p>我建立了一個 API，你可以試著用 Python 的 requests 來抓取資料。</p>
+
+<h3>1. API Endpoint</h3>
+<pre>GET /api/v1/get-code</pre>
+
+<h3>2. Python 範例程式碼</h3>
+<pre>
+import requests
+
+response = requests.get('http://127.0.0.1:5000/api/v1/get-code')
+data = response.json()
+
+print(f"Author: {data['author']}")
+print(f"Code: \n{data['snippet']}")
+</pre>
+
+<h3>3. 點擊測試</h3>
+<a href="/api/v1/get-code" target="_blank">[ 執行 API 請求 ]</a>
+{% endblock %}
