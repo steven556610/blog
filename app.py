@@ -1,5 +1,6 @@
+import markdown  # <--- 記得 import
 from flask import Flask, render_template, jsonify, request
-from models import db, Post
+from models import db, Post, KaggleCompetition
 
 app = Flask(__name__)
 # 設定 SQLite 資料庫
@@ -8,9 +9,49 @@ app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 db.init_app(app)
 
-# 初始化資料庫 (第一次執行時開啟)
+# --- 修改 init_data 函式 ---
+def init_data():
+    # 1. 初始化 Kaggle 資料
+    if not KaggleCompetition.query.first():
+        sample_comp = KaggleCompetition(
+            name="Playground Series - Season 5, Episode 12",
+            url="https://www.kaggle.com/competitions/playground-series-s5e12/rules",
+            rank_info="Participating",
+            api_command="kaggle competitions download -c playground-series-s5e12",
+            description="### Init Data\nData loaded successfully."
+        )
+        db.session.add(sample_comp)
+        
+    # 2. 初始化 Blog 資料 (這就是你缺少的！)
+    if not Post.query.first():
+        sample_post = Post(
+            title="System Reboot: Hello World",
+            content="資料庫重置完成。這是第一篇自動生成的網誌文章。系統運作正常。",
+            code_snippet="print('Hello World')",
+            # date_posted 會自動生成
+        )
+        db.session.add(sample_post)
+    
+    # 提交所有變更
+    db.session.commit()
+    print(">> System Database: All Systems Operational.")
+
+# --- 啟動區塊 ---
 with app.app_context():
     db.create_all()
+    init_data() # 呼叫這個新的函式
+
+# --- 新增路由 ---
+@app.route('/kaggle')
+def kaggle_page():
+    comps = KaggleCompetition.query.order_by(KaggleCompetition.date_added.desc()).all()
+    
+    # 將 Markdown 轉為 HTML
+    for comp in comps:
+        if comp.description:
+            comp.description = markdown.markdown(comp.description)
+            
+    return render_template('kaggle.html', comps=comps)
 
 # --- 頁面路由 ---
 @app.route('/')

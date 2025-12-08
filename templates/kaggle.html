@@ -1,0 +1,46 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h2>> Kaggle_Competition_Database</h2>
+<p>追蹤中的比賽與分析筆記。</p>
+<br>
+
+{% for comp in comps %}
+<div class="container" style="margin-bottom: 40px; border: 2px solid #0F0;">
+    <h3 style="border-bottom: 1px solid #0F0; padding-bottom: 5px;">
+        Project_ID: {{ comp.id }} | {{ comp.name }}
+    </h3>
+    
+    <table class="matrix-table">
+        <tr>
+            <th width="20%">Status</th>
+            <td>{{ comp.rank_info }}</td>
+        </tr>
+        <tr>
+            <th>Official Link</th>
+            <td>
+                <a href="{{ comp.url }}" target="_blank">[ Access Mainframe ]</a>
+            </td>
+        </tr>
+    </table>
+
+    <div class="api-box">
+        <p style="color: #888;"># Download Data:</p>
+        <p>$ {{ comp.api_command }}</p>
+    </div>
+
+    <br>
+
+    <div style="padding: 15px; border-top: 1px dotted #0F0;">
+        <h4 style="color: #fff;">>> Analysis_Log:</h4>
+        <div style="line-height: 1.6;">
+            {{ comp.description | safe }}
+        </div>
+    </div>
+</div>
+{% endfor %}
+
+<div style="text-align: center; margin-top: 20px;">
+    <a href="/" class="btn">[ < Return to Root ]</a>
+</div>
+{% endblock %}
