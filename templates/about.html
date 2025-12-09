@@ -1,0 +1,97 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div style="max-width: 900px; margin: 0 auto;">
+    <h2>> About_Me.sys</h2>
+    <p style="opacity: 0.8; margin-bottom: 30px;">> Loading personal profile...</p>
+
+    <!-- 個人簡介區塊 -->
+    <div style="border: 2px solid #0F0; padding: 25px; margin-bottom: 30px; background: rgba(0, 20, 0, 0.3);">
+        <h3 style="color: #0F0; margin-top: 0;">[ 系統資訊 ]</h3>
+
+        <div style="line-height: 1.8;">
+            <p>> <strong>Name:</strong> Steven</p>
+            <p>> <strong>Role:</strong> NYCU Researcher</p>
+            <p>> <strong>Location:</strong> Taiwan</p>
+            <p>> <strong>Interests:</strong> Python, Data Science, Bioinformatics, Machine Learning</p>
+        </div>
+
+        <br>
+
+        <h4 style="color: #0F0;">[ 研究領域 ]</h4>
+        <p style="line-height: 1.8;">
+            專注於生物資訊學、基因體分析、以及機器學習在醫學研究上的應用。
+            目前正在進行 Mutect2 變異分析流程的研究，並參與多個 Kaggle 競賽來提升資料科學技能。
+        </p>
+
+        <br>
+
+        <h4 style="color: #0F0;">[ 聯絡方式 ]</h4>
+        <p>
+            > GitHub: <a href="https://github.com/steven556610" target="_blank">@steven556610</a><br>
+            > Email: <span style="opacity: 0.8;">steven.su@example.com</span>
+        </p>
+    </div>
+
+    <!-- 技能樹區塊 -->
+    <div style="border: 2px solid #0F0; padding: 25px; margin-bottom: 30px; background: rgba(0, 20, 0, 0.3);">
+        <h3 style="color: #0F0; margin-top: 0;">[ 技能樹 ]</h3>
+        <ul style="list-style: none; padding-left: 20px;">
+            <li>> Python [████████░░] 80%</li>
+            <li>> Flask/Django [███████░░░] 70%</li>
+            <li>> Data Analysis [████████░░] 80%</li>
+            <li>> Bioinformatics [███████░░░] 70%</li>
+            <li>> Machine Learning [██████░░░░] 60%</li>
+            <li>> Docker/K8s [█████░░░░░] 50%</li>
+        </ul>
+    </div>
+
+    <!-- 專案展示 -->
+    <div style="border: 2px solid #0F0; padding: 25px; margin-bottom: 30px; background: rgba(0, 20, 0, 0.3);">
+        <h3 style="color: #0F0; margin-top: 0;">[ 專案展示 ]</h3>
+
+        <div style="margin-bottom: 20px;">
+            <h4 style="color: #00FF00; margin-bottom: 5px;">Steven's Matrix Hub</h4>
+            <p style="opacity: 0.8;">
+                個人部落格與 Kaggle 競賽追蹤系統，採用 Flask 框架與 Matrix 駭客風格設計。
+            </p>
+            <p style="font-size: 0.9em;">
+                <strong>Tech Stack:</strong> Flask, SQLAlchemy, SQLite, Jinja2, JavaScript
+            </p>
+        </div>
+
+        <div style="margin-bottom: 20px;">
+            <h4 style="color: #00FF00; margin-bottom: 5px;">Mutect2 Analysis Pipeline</h4>
+            <p style="opacity: 0.8;">
+                用於腫瘤樣本體細胞突變檢測的完整分析流程。
+            </p>
+            <p style="font-size: 0.9em;">
+                <strong>Tech Stack:</strong> Python, GATK, Bioinformatics Tools
+            </p>
+        </div>
+    </div>
+
+    <!-- Spotify 播放清單區塊 -->
+    <div style="border: 2px solid #0F0; padding: 25px; margin-bottom: 30px; background: rgba(0, 20, 0, 0.3);">
+        <h3 style="color: #0F0; margin-top: 0;">[ 音樂播放清單 ]</h3>
+        <p style="opacity: 0.8; margin-bottom: 20px;">> Coding Soundtrack: My favorite tracks while working</p>
+
+        <div style="border: 1px solid rgba(0, 255, 0, 0.3); padding: 10px; background: rgba(0, 0, 0, 0.5);">
+            <iframe data-testid="embed-iframe" style="border-radius:12px"
+                src="https://open.spotify.com/embed/playlist/37i9dQZEVXd6wzlJBWUxe8?utm_source=generator" width="100%"
+                height="352" frameBorder="0" allowfullscreen=""
+                allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" loading="lazy">
+            </iframe>
+        </div>
+
+        <p style="font-size: 0.85em; opacity: 0.6; margin-top: 15px;">
+            > System Note: Music helps optimize neural network performance
+        </p>
+    </div>
+
+    <!-- 返回按鈕 -->
+    <div style="text-align: center; margin-top: 30px;">
+        <a href="/" class="btn">[ < Return to Root ]</a>
+    </div>
+</div>
+{% endblock %}

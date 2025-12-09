@@ -15,8 +15,10 @@
             <h1>Steven_System_Root</h1>
             <nav>
                 <a href="/">[ Home ]</a>
+                <a href="/about">[ About ]</a>
                 <a href="/blog">[ Blog ]</a>
-                <a href="/kaggle">[ Kaggle DB ]</a>  <a href="/api-tutorial">[ API Doc ]</a>
+                <a href="/kaggle">[ Kaggle DB ]</a>
+                <a href="/api-tutorial">[ API Doc ]</a>
             </nav>
         </header>
 
@@ -26,6 +28,8 @@
 
         <footer>
             <p>> System Status: Online | © 2025 NYCU Researcher</p>
+            <p style="font-size: 0.85em; opacity: 0.7; margin-top: 5px;">> 訪問人次: {{ visitor_stats.total_visits if
+                visitor_stats else 0 }}</p>
         </footer>
     </div>
 

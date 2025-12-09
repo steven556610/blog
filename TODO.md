@@ -10,3 +10,8 @@
 10. NLP
 11. model discuss
 12. 文章討論
+13. docker
+14. k8s
+15. n8n
+16. finaicial
+17. LLM
