@@ -12,4 +12,4 @@ env/
 # 忽略環境變數設定檔 (如果有放 API Key)
 .env
 
-.pyc
+.pycinstance/database.db
