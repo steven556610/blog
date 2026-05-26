@@ -1,0 +1,110 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h2>> Accessing_Project_Directory</h2>
+<p>本系統收錄之核心研究專案與本機端 AI 實驗平台：</p>
+<br>
+
+<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 25px; margin-top: 20px;">
+    
+    <!-- 專案 1: BioRec -->
+    <div class="container" style="border: 2px solid #0F0; background: rgba(0, 15, 0, 0.9); margin: 0; padding: 25px; display: flex; flex-direction: column; justify-content: space-between; border-radius: 8px;">
+        <div>
+            <h3 style="border-bottom: 2px solid #0F0; padding-bottom: 10px; margin-top: 0; color: #0F0;">
+                🧬 BioRec: Drug Rec Suite
+            </h3>
+            
+            <p style="line-height: 1.6; opacity: 0.9; font-size: 0.95em;">
+                基於 <strong>STRING 蛋白質交互作用網路</strong>與 <strong>DrugBank 靶點映射</strong>，構建<strong>最短路徑拓撲鄰近矩陣 (SPPM)</strong>。
+                整合並對比了奇異值分解 (SVD) 與客製化 <strong>PyTorch 圖卷積神經網路 (GCN)</strong>，並建置包含 Node2Vec、RWR 等 7 種演算法的<strong>共識預測引擎</strong>。
+            </p>
+            
+            <br>
+            <div style="border-top: 1px dotted #0F0; padding-top: 15px; font-size: 0.88em;">
+                <strong>核心架構與技術棧：</strong>
+                <ul style="list-style: none; padding-left: 15px; margin-top: 8px;">
+                    <li>> PyTorch / Graph Neural Networks</li>
+                    <li>> Matrix SVD Factorization</li>
+                    <li>> SQLite Stream Ingestion</li>
+                    <li>> FastAPI & Chart.js Web Suite</li>
+                </ul>
+            </div>
+        </div>
+        
+        <div style="margin-top: 30px; text-align: center;">
+            <a href="/biorec" class="btn" style="display: inline-block; width: 90%; font-weight: bold; border-width: 2px; padding: 8px 15px;">
+                [ ENTER BIOTECH MAINFRAME ]
+            </a>
+        </div>
+    </div>
+
+    <!-- 專案 2: Portrait -->
+    <div class="container" style="border: 2px solid #0F0; background: rgba(0, 15, 0, 0.9); margin: 0; padding: 25px; display: flex; flex-direction: column; justify-content: space-between; border-radius: 8px;">
+        <div>
+            <h3 style="border-bottom: 2px solid #0F0; padding-bottom: 10px; margin-top: 0; color: #0F0;">
+                💬 Portrait: Persona Analyzer
+            </h3>
+            
+            <p style="line-height: 1.6; opacity: 0.9; font-size: 0.95em;">
+                注重隱私的<strong>地端 LINE 聊天記錄人物誌分析器</strong>。
+                利用 <strong>LangChain</strong> 與本地端 <strong>Ollama LLM</strong> 提取發言者性格、目標、喜好、經歷等八大核心維度，
+                並結合 <strong>ChromaDB 向量記憶庫</strong>，支援具有長期記憶的對話 Q&A 助理與對話文字雲生成。
+            </p>
+            
+            <br>
+            <div style="border-top: 1px dotted #0F0; padding-top: 15px; font-size: 0.88em;">
+                <strong>核心架構與技術棧：</strong>
+                <ul style="list-style: none; padding-left: 15px; margin-top: 8px;">
+                    <li>> LangChain & ChromaDB (Local RAG)</li>
+                    <li>> Ollama Llama / Qwen LLM Engine</li>
+                    <li>> Streamlit User Interface</li>
+                    <li>> Wordcloud Visualization</li>
+                </ul>
+            </div>
+        </div>
+        
+        <div style="margin-top: 30px; text-align: center;">
+            <a href="/portrait" class="btn" style="display: inline-block; width: 90%; font-weight: bold; border-width: 2px; padding: 8px 15px;">
+                [ LAUNCH PORTRAIT ASSISTANT ]
+            </a>
+        </div>
+    </div>
+
+    <!-- 專案 3: Notion Integrator -->
+    <div class="container" style="border: 2px solid #0F0; background: rgba(0, 15, 0, 0.9); margin: 0; padding: 25px; display: flex; flex-direction: column; justify-content: space-between; border-radius: 8px;">
+        <div>
+            <h3 style="border-bottom: 2px solid #0F0; padding-bottom: 10px; margin-top: 0; color: #0F0;">
+                📅 Notion Logs Summarizer
+            </h3>
+            
+            <p style="line-height: 1.6; opacity: 0.9; font-size: 0.95em;">
+                自動化整理與歸檔 Notion 每日日誌的智慧助理。
+                透過 <strong>Notion API</strong> 定期拉取日誌頁面，利用地端 <strong>Llama.cpp & Qwen LLM</strong> 完成時間段週報/月報、以及<strong>主題式報告 (Thematic Report)</strong>，並支援 LINE Notify 提醒與本機 SQLite 歷史追蹤庫。
+            </p>
+            
+            <br>
+            <div style="border-top: 1px dotted #0F0; padding-top: 15px; font-size: 0.88em;">
+                <strong>核心架構與技術棧：</strong>
+                <ul style="list-style: none; padding-left: 15px; margin-top: 8px;">
+                    <li>> Notion Developer API</li>
+                    <li>> Llama.cpp / Qwen GGUF Model</li>
+                    <li>> Streamlit Web UI Layout</li>
+                    <li>> LINE Notify & SMTP Notifier</li>
+                </ul>
+            </div>
+        </div>
+        
+        <div style="margin-top: 30px; text-align: center;">
+            <a href="/notion-integrator" class="btn" style="display: inline-block; width: 90%; font-weight: bold; border-width: 2px; padding: 8px 15px;">
+                [ LAUNCH NOTION INTEGRATOR ]
+            </a>
+        </div>
+    </div>
+
+</div>
+
+<br><br>
+<div style="text-align: center; margin-top: 20px;">
+    <a href="/" class="btn">[ < Return to Root ]</a>
+</div>
+{% endblock %}

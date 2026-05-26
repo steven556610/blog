@@ -1,0 +1,420 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Notion Daily Logs Summarizer 📅</title>
+    
+    <!-- Premium Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Noto+Sans+TC:wght@300;400;500;700&display=swap" rel="stylesheet">
+    
+    <!-- Lucide Icons CDN -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    
+    <!-- Custom Stylesheet -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/portrait_style.css') }}">
+    <style>
+        /* Specific tweaks to match Streamlit Tabs and Notion aesthetic */
+        .tab-nav {
+            display: flex;
+            gap: 10px;
+            border-bottom: 1px solid var(--border-color);
+            margin-bottom: 25px;
+        }
+        
+        .tab-btn {
+            background: transparent;
+            border: none;
+            border-bottom: 2px solid transparent;
+            padding: 10px 20px;
+            color: var(--text-muted);
+            font-size: 0.95rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            outline: none;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .tab-btn.active {
+            border-bottom-color: #f43f5e;
+            color: #fff;
+        }
+        
+        .tab-pane {
+            display: none;
+        }
+        
+        .tab-pane.active {
+            display: block;
+        }
+        
+        .form-row {
+            display: flex;
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+        
+        .form-group {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+        
+        .form-group label {
+            font-size: 0.88rem;
+            color: #fff;
+            font-weight: 500;
+        }
+        
+        .form-group input[type="date"], .form-group input[type="text"] {
+            background: var(--bg-color);
+            border: 1px solid var(--border-color);
+            padding: 10px;
+            border-radius: 8px;
+            color: var(--text-color);
+            font-family: var(--font-family);
+            outline: none;
+        }
+        
+        .form-group input[type="date"]:focus, .form-group input[type="text"]:focus {
+            border-color: #f43f5e;
+        }
+        
+        .radio-group {
+            display: flex;
+            gap: 20px;
+            margin-top: 5px;
+        }
+        
+        .radio-option {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            cursor: pointer;
+            font-size: 0.9rem;
+        }
+        
+        .radio-option input {
+            cursor: pointer;
+            accent-color: #f43f5e;
+        }
+        
+        /* Streamlit primary button */
+        .btn-streamlit {
+            background-color: #f43f5e;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 8px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.2s;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            outline: none;
+        }
+        
+        .btn-streamlit:hover {
+            background-color: #e11d48;
+        }
+        
+        .btn-secondary-st {
+            background: var(--bot-bubble);
+            border: 1px solid var(--border-color);
+            color: var(--text-color);
+            padding: 8px 16px;
+            border-radius: 8px;
+            font-size: 0.88rem;
+            cursor: pointer;
+            outline: none;
+            transition: all 0.2s;
+        }
+        
+        .btn-secondary-st:hover {
+            border-color: #f43f5e;
+            background: var(--border-color);
+        }
+        
+        .status-box {
+            background-color: var(--bot-bubble);
+            border: 1px solid var(--border-color);
+            border-left: 4px solid var(--accent-color);
+            border-radius: 6px;
+            padding: 12px 18px;
+            margin: 20px 0;
+            font-size: 0.88rem;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        
+        .status-box.success {
+            border-left-color: #10b981;
+            background-color: rgba(16, 185, 129, 0.05);
+        }
+        
+        .status-box.error {
+            border-left-color: #ef4444;
+            background-color: rgba(239, 68, 68, 0.05);
+        }
+        
+        .preview-box {
+            background-color: rgba(0, 0, 0, 0.3);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 25px;
+            margin-top: 25px;
+            line-height: 1.6;
+            font-size: 0.92rem;
+            overflow-y: auto;
+            max-height: 600px;
+        }
+        
+        .preview-box h1, .preview-box h2, .preview-box h3 {
+            color: #ff85a2;
+            margin-top: 20px;
+            margin-bottom: 10px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            padding-bottom: 6px;
+        }
+        
+        .preview-box p, .preview-box li {
+            opacity: 0.9;
+        }
+        
+        .preview-box ul {
+            padding-left: 20px;
+        }
+        
+        .preview-box li {
+            margin: 6px 0;
+        }
+        
+        /* Streamlit dataframe grid */
+        .st-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.88rem;
+            background-color: rgba(255, 255, 255, 0.02);
+            border-radius: 8px;
+            overflow: hidden;
+            border: 1px solid var(--border-color);
+        }
+        
+        .st-table th, .st-table td {
+            border: 1px solid var(--border-color);
+            padding: 12px 15px;
+            text-align: left;
+        }
+        
+        .st-table th {
+            background-color: rgba(255, 255, 255, 0.05);
+            font-weight: 600;
+            color: #fff;
+        }
+        
+        .st-table tbody tr:hover {
+            background-color: rgba(255, 255, 255, 0.03);
+        }
+        
+        .notion-btn {
+            background-color: #2b2e38;
+            border: 1px solid #454955;
+            color: #fff;
+            padding: 4px 10px;
+            border-radius: 6px;
+            text-decoration: none;
+            font-size: 0.8rem;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            transition: all 0.2s;
+        }
+        
+        .notion-btn:hover {
+            background-color: #fff;
+            color: #000;
+        }
+    </style>
+</head>
+<body>
+    <div class="glow-container">
+        <div class="glow-orb orb-1" style="background: radial-gradient(circle, #f43f5e 0%, transparent 80%);"></div>
+        <div class="glow-orb orb-2" style="background: radial-gradient(circle, #e11d48 0%, transparent 80%);"></div>
+    </div>
+
+    <div class="app-layout">
+        <!-- Sidebar Panel -->
+        <aside class="app-sidebar" style="background-color: #111217; border-right: 1px solid #262730;">
+            <div class="sidebar-header">
+                <span class="logo-icon" style="background: linear-gradient(135deg, #f43f5e, #be123c);"><i data-lucide="calendar"></i></span>
+                <div class="logo-text">
+                    <h1 style="font-size: 1.1rem;">Notion Integrator</h1>
+                    <p style="color: #ff85a2;">DAILY LOGS AGGREGATOR</p>
+                </div>
+            </div>
+
+            <div style="margin-top: 10px; margin-bottom: 25px; padding-left: 5px;">
+                <a href="/projects" class="back-link">
+                    <i data-lucide="arrow-left" style="width: 16px; height: 16px;"></i> 返回專案目錄
+                </a>
+            </div>
+
+            <hr class="sidebar-divider" style="border-top-color: #262730;">
+
+            <!-- Sidebar Configuration Options -->
+            <div class="sidebar-group">
+                <label class="setting-label"><i data-lucide="settings"></i> ⚙️ Configuration</label>
+                <div style="margin-top: 15px;">
+                    <label class="setting-label" style="font-size: 0.78rem; opacity: 0.8; margin-bottom: 5px;">Choose LLM Model:</label>
+                    <select id="model-selector" style="background-color: #262730; border-color: #464855;">
+                        <option value="Qwen2.5-7B-Instruct">Qwen2.5-7B-Instruct (預設)</option>
+                        <option value="Qwen2.5-3B-Instruct">Qwen2.5-3B-Instruct (輕量)</option>
+                        <option value="Qwen2.5-14B-Instruct">Qwen2.5-14B-Instruct (精準)</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="sidebar-group" style="background-color: rgba(244, 63, 94, 0.05); border: 1px solid rgba(244, 63, 94, 0.2); border-radius: 8px; padding: 15px; font-size: 0.8rem; line-height: 1.6; color: #ffccd5;">
+                <strong>ℹ️ Configuration Warning:</strong><br>
+                本地地端分析已整合 Notion Integration 憑證！所有整理後之週報與月報摘要，將會透過 Notion API 自動推送寫入您專屬的 Database 頁面，並記錄於 SQLite 中。
+            </div>
+
+            <div class="sidebar-footer" style="border-top-color: #262730;">
+                <div class="status-indicator online" style="background-color: #10b981; box-shadow: 0 0 8px #10b981;"></div>
+                <div class="status-info">
+                    <p class="status-title">Notion Pipeline Active</p>
+                    <p class="status-sub">Llama.cpp CPU Parser</p>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Main Workspace -->
+        <main class="app-main" style="padding: 40px;">
+            <div class="chat-header" style="margin-bottom: 25px;">
+                <h2>Notion Daily Logs Summarizer 📅</h2>
+                <p>提取您 Notion 連接日曆中的每日日誌 (例如格式為 Date_daily 頁面)，呼叫本地 GGUF LLM 自動歸納產生結構化日誌報告。</p>
+            </div>
+
+            <!-- Streamlit Navigation Tabs -->
+            <div class="tab-nav">
+                <button class="tab-btn active" id="tab-btn-time" onclick="switchMainTab('time')">🗓️ Time-Based Report</button>
+                <button class="tab-btn" id="tab-btn-theme" onclick="switchMainTab('theme')">🎯 Thematic Report</button>
+                <button class="tab-btn" id="tab-btn-vault" onclick="switchMainTab('vault')">🗄️ History Vault</button>
+            </div>
+
+            <!-- TAB 1: Time-Based Report -->
+            <section class="tab-pane active" id="pane-time">
+                <h3 style="color: #fff; margin-top: 0; font-size: 1.15rem;">Generate Weekly/Monthly Reports</h3>
+                <p style="font-size: 0.88rem; color: var(--text-muted); margin-bottom: 20px;">選擇一個日期時間區間，系統將會一鍵萃取該時間段內所有日誌並彙整生成週報/月報。</p>
+                
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Start Date</label>
+                        <input type="date" id="time-start-date" value="2026-05-20">
+                    </div>
+                    <div class="form-group">
+                        <label>End Date</label>
+                        <input type="date" id="time-end-date" value="2026-05-27">
+                    </div>
+                </div>
+
+                <div class="form-group" style="margin-bottom: 25px;">
+                    <label>Report Type:</label>
+                    <div class="radio-group">
+                        <label class="radio-option">
+                            <input type="radio" name="report-type-radio" value="Weekly" checked> Weekly (週報)
+                        </label>
+                        <label class="radio-option">
+                            <input type="radio" name="report-type-radio" value="Monthly"> Monthly (月報)
+                        </label>
+                    </div>
+                </div>
+
+                <button class="btn-streamlit" onclick="generateTimeReport()"><i data-lucide="play"></i> Generate Time-Based Report</button>
+
+                <!-- Status Overlay Spinner -->
+                <div id="time-status-container" style="display: none;"></div>
+
+                <!-- Preview Block -->
+                <div id="time-preview-container" style="display: none;"></div>
+            </section>
+
+            <!-- TAB 2: Thematic Report -->
+            <section class="tab-pane" id="pane-theme">
+                <h3 style="color: #fff; margin-top: 0; font-size: 1.15rem;">Generate Thematic Report</h3>
+                <p style="font-size: 0.88rem; color: var(--text-muted); margin-bottom: 20px;">指定特定主題或問題（例如：本週在工作上學了哪些技術？情緒狀態如何？），AI 將只從對應日期區間的日誌中檢索並產出焦點主題報告。</p>
+                
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Start Date (Theme)</label>
+                        <input type="date" id="theme-start-date" value="2026-05-20">
+                    </div>
+                    <div class="form-group">
+                        <label>End Date (Theme)</label>
+                        <input type="date" id="theme-end-date" value="2026-05-27">
+                    </div>
+                </div>
+
+                <div class="form-group" style="margin-bottom: 25px;">
+                    <label>Enter your specific Theme or Question:</label>
+                    <input type="text" id="theme-question-input" placeholder="例如：我這週主要進行了哪些 Side Project？或者這週的情緒心態如何？" style="width: 100%; box-sizing: border-box;">
+                </div>
+
+                <button class="btn-streamlit" onclick="generateThemeReport()"><i data-lucide="sparkles"></i> Generate Thematic Report</button>
+
+                <!-- Status Overlay Spinner -->
+                <div id="theme-status-container" style="display: none;"></div>
+
+                <!-- Preview Block -->
+                <div id="theme-preview-container" style="display: none;"></div>
+            </section>
+
+            <!-- TAB 3: History Vault -->
+            <section class="tab-pane" id="pane-vault">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                    <div>
+                        <h3 style="color: #fff; margin-top: 0; font-size: 1.15rem;">🗄️ History Vault</h3>
+                        <p style="font-size: 0.88rem; color: var(--text-muted); margin-bottom: 0;">本地 SQLite 資料庫中保存的歷史生成報告紀錄備份：</p>
+                    </div>
+                    <button class="btn-secondary-st" onclick="fetchHistoryReports()"><i data-lucide="refresh-cw" style="width: 14px; height: 14px; vertical-align: middle; margin-right: 4px;"></i> Refresh History</button>
+                </div>
+
+                <div class="table-container" style="margin-top: 15px;">
+                    <table class="st-table">
+                        <thead>
+                            <tr>
+                                <th width="8%">ID</th>
+                                <th width="12%">Report Type</th>
+                                <th width="25%">Theme / Subject</th>
+                                <th width="15%">Start Date</th>
+                                <th width="15%">End Date</th>
+                                <th width="15%">Created At</th>
+                                <th width="10%">Link</th>
+                            </tr>
+                        </thead>
+                        <tbody id="history-table-body">
+                            <!-- Dynamic history data rows -->
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <!-- Inject scripts -->
+    <script src="{{ url_for('static', filename='js/notion_script.js') }}"></script>
+    <script>
+        // Initialize lucide icons
+        lucide.createIcons();
+    </script>
+</body>
+</html>

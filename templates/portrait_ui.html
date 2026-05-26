@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Portrait | LINE 聊天記錄人物誌分析助理</title>
+    
+    <!-- Premium Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Noto+Sans+TC:wght@300;400;500;700&display=swap" rel="stylesheet">
+    
+    <!-- Lucide Icons CDN -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    
+    <!-- Custom Stylesheet -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/portrait_style.css') }}">
+</head>
+<body>
+    <div class="glow-container">
+        <div class="glow-orb orb-1"></div>
+        <div class="glow-orb orb-2"></div>
+    </div>
+
+    <div class="app-layout">
+        <!-- Sidebar Panel -->
+        <aside class="app-sidebar">
+            <div class="sidebar-header">
+                <span class="logo-icon"><i data-lucide="message-square"></i></span>
+                <div class="logo-text">
+                    <h1>人物誌助理</h1>
+                    <p>LINE CHAT PERSONA RAG</p>
+                </div>
+            </div>
+
+            <div style="margin-top: 10px; margin-bottom: 20px; padding-left: 5px;">
+                <a href="/projects" class="back-link">
+                    <i data-lucide="arrow-left" style="width: 16px; height: 16px;"></i> 返回專案目錄
+                </a>
+            </div>
+
+            <hr class="sidebar-divider">
+
+            <!-- Persona Selector -->
+            <div class="sidebar-group">
+                <label class="setting-label"><i data-lucide="users"></i> 選擇對話對象</label>
+                <select id="persona-selector" onchange="onPersonaChanged()">
+                    <option value="">載入中...</option>
+                </select>
+            </div>
+
+            <div id="persona-badge-container" style="margin-top: 10px;">
+                <span class="persona-badge" id="persona-badge-name">👤 載入中...</span>
+            </div>
+
+            <!-- Risk Warning Alert Panel -->
+            <div class="sidebar-group risk-alert-card" id="risk-panel" style="display: none;">
+                <div class="risk-header">
+                    <i data-lucide="alert-triangle"></i>
+                    <span id="risk-title">高風險警示</span>
+                </div>
+                <details class="risk-details">
+                    <summary>👉 查看警示詳細原因</summary>
+                    <div class="risk-body" id="risk-reason">
+                        載入中...
+                    </div>
+                </details>
+            </div>
+
+            <!-- Wordcloud Display -->
+            <div class="sidebar-group" id="wordcloud-group" style="display: none;">
+                <h3 class="sidebar-subheader"><i data-lucide="image"></i> 對話文字雲</h3>
+                <div class="wordcloud-container">
+                    <img id="wordcloud-img" src="" alt="對話文字雲">
+                </div>
+            </div>
+
+            <!-- Persona Report Expander -->
+            <div class="sidebar-group" id="report-group" style="display: none;">
+                <h3 class="sidebar-subheader"><i data-lucide="file-text"></i> 人物誌報告</h3>
+                <details class="report-details">
+                    <summary>點擊展開完整報告</summary>
+                    <div class="report-content" id="report-html-content">
+                        載入中...
+                    </div>
+                </details>
+            </div>
+            
+            <div class="sidebar-footer">
+                <div class="status-indicator online"></div>
+                <div class="status-info">
+                    <p class="status-title">地端 RAG 運作中</p>
+                    <p class="status-sub">Ollama × ChromaDB</p>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Main Workspace -->
+        <main class="app-main">
+            <div class="chat-header">
+                <h2 id="chat-title">💬 與人物對話記憶互動</h2>
+                <p>直接輸入你的問題，AI 將從 LINE 對話記憶中進行本地 RAG 檢索與回答。</p>
+            </div>
+
+            <!-- Suggested Questions Section -->
+            <div class="suggested-section">
+                <span class="suggested-label"><i data-lucide="sparkles"></i> 建議問題</span>
+                <div class="suggested-chips" id="suggested-chips-container">
+                    <!-- Dynamic suggested question chips -->
+                </div>
+            </div>
+
+            <hr class="main-divider">
+
+            <!-- Chat Logger Container -->
+            <div class="chat-history-container" id="chat-history">
+                <div class="system-welcome-message" id="welcome-message">
+                    <i data-lucide="message-circle" class="welcome-icon"></i>
+                    <h3>歡迎使用 LINE 人物誌助理</h3>
+                    <p>請在左側選取你要對話的對象。你可以詢問關於他們的性格、喜好、過往經歷或近期煩惱，AI 將為您準確作答！</p>
+                </div>
+            </div>
+
+            <!-- Input Bar -->
+            <div class="chat-input-area">
+                <div class="input-container">
+                    <input type="text" id="chat-input" placeholder="輸入你的問題... (例如: 他的性格特質是什麼?)" onkeydown="if(event.key === 'Enter') sendQuery()">
+                    <button class="send-btn" onclick="sendQuery()"><i data-lucide="send"></i></button>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Inject main logic -->
+    <script src="{{ url_for('static', filename='js/portrait_script.js') }}"></script>
+    <script>
+        // Initialize lucide icons
+        lucide.createIcons();
+    </script>
+</body>
+</html>
