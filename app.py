@@ -579,6 +579,11 @@ def notion_integrator_page():
     """Notion 日誌整合器與 LLM 摘要 Web UI 儀表板"""
     return render_template('notion_integrator_ui.html', visitor_stats=get_aggregate_visitor_stats())
 
+@app.route('/literature-integrator')
+def literature_integrator_page():
+    """智慧文獻整合平台 — arXiv / bioRxiv / medRxiv AI 深度分析儀表板"""
+    return render_template('literature_integrator_ui.html', visitor_stats=get_aggregate_visitor_stats())
+
 # In-memory session store for newly generated reports to make the dashboard fully dynamic!
 NOTION_REPORTS_CACHE = [
     {

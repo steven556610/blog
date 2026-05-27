@@ -1,0 +1,1006 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Literature Integrator 📚 — AI 文獻智慧整合平台</title>
+
+    <!-- Premium Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Noto+Sans+TC:wght@300;400;500;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+
+    <!-- Lucide Icons CDN -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+
+    <!-- Base Portrait Style -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/portrait_style.css') }}">
+
+    <style>
+        /* ===== Literature Integrator Accent Overrides (Teal/Cyan theme) ===== */
+        :root {
+            --accent-color: #0d9488;
+            --accent-hover: #14b8a6;
+            --accent-glow: rgba(13, 148, 136, 0.25);
+            --accent-soft: rgba(20, 184, 166, 0.08);
+            --user-bubble: #0f3d3a;
+            --bot-bubble: #0d1f1e;
+            --border-color: #1e3535;
+        }
+
+        .glow-orb.orb-1 { background: radial-gradient(circle, #0d9488 0%, transparent 80%); }
+        .glow-orb.orb-2 { background: radial-gradient(circle, #0e7490 0%, transparent 80%); }
+
+        /* ===== Tab Navigation ===== */
+        .tab-nav {
+            display: flex;
+            gap: 6px;
+            border-bottom: 1px solid var(--border-color);
+            margin-bottom: 28px;
+        }
+
+        .tab-btn {
+            background: transparent;
+            border: none;
+            border-bottom: 2px solid transparent;
+            padding: 10px 18px;
+            color: var(--text-muted);
+            font-size: 0.9rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            outline: none;
+            display: flex;
+            align-items: center;
+            gap: 7px;
+            font-family: var(--font-family);
+        }
+
+        .tab-btn.active {
+            border-bottom-color: var(--accent-hover);
+            color: #fff;
+        }
+
+        .tab-btn:hover { color: #fff; }
+
+        .tab-pane { display: none; }
+        .tab-pane.active { display: block; }
+
+        /* ===== Search / Input ===== */
+        .search-bar {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+
+        .search-bar input[type="text"],
+        .search-bar input[type="url"] {
+            flex: 1;
+            background: var(--bg-color);
+            border: 1px solid var(--border-color);
+            padding: 11px 16px;
+            border-radius: 10px;
+            color: var(--text-color);
+            font-family: var(--font-family);
+            font-size: 0.9rem;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+
+        .search-bar input:focus { border-color: var(--accent-hover); }
+
+        .filter-row {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 22px;
+            flex-wrap: wrap;
+        }
+
+        .filter-chip {
+            background: var(--bot-bubble);
+            border: 1px solid var(--border-color);
+            border-radius: 20px;
+            padding: 5px 14px;
+            color: var(--text-muted);
+            font-size: 0.8rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            outline: none;
+        }
+
+        .filter-chip.active,
+        .filter-chip:hover {
+            background: var(--accent-soft);
+            border-color: var(--accent-color);
+            color: var(--accent-hover);
+        }
+
+        /* ===== Paper Cards ===== */
+        .papers-grid {
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+            overflow-y: auto;
+            max-height: calc(100vh - 310px);
+            padding-right: 6px;
+        }
+
+        .paper-card {
+            background: var(--bot-bubble);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 18px 20px;
+            transition: border-color 0.2s, box-shadow 0.2s;
+            animation: slideIn 0.25s ease-out;
+            cursor: pointer;
+        }
+
+        .paper-card:hover {
+            border-color: var(--accent-color);
+            box-shadow: 0 4px 20px var(--accent-glow);
+        }
+
+        .paper-card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            gap: 12px;
+            margin-bottom: 10px;
+        }
+
+        .paper-title {
+            font-size: 0.95rem;
+            font-weight: 600;
+            color: #fff;
+            line-height: 1.45;
+            flex: 1;
+        }
+
+        .paper-source-badge {
+            font-size: 0.72rem;
+            font-weight: 700;
+            padding: 3px 10px;
+            border-radius: 12px;
+            white-space: nowrap;
+            flex-shrink: 0;
+        }
+
+        .badge-arxiv { background: rgba(179, 68, 68, 0.2); color: #f87171; border: 1px solid rgba(248, 113, 113, 0.3); }
+        .badge-biorxiv { background: rgba(234, 179, 8, 0.15); color: #fbbf24; border: 1px solid rgba(251, 191, 36, 0.3); }
+        .badge-medrxiv { background: rgba(59, 130, 246, 0.15); color: #60a5fa; border: 1px solid rgba(96, 165, 250, 0.3); }
+
+        .paper-meta {
+            font-size: 0.78rem;
+            color: var(--text-muted);
+            margin-bottom: 10px;
+            display: flex;
+            gap: 14px;
+            flex-wrap: wrap;
+        }
+
+        .paper-summary {
+            font-size: 0.85rem;
+            color: var(--text-color);
+            opacity: 0.85;
+            line-height: 1.6;
+            margin-bottom: 12px;
+        }
+
+        .paper-tags {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .paper-tag {
+            background: var(--bg-color);
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            padding: 2px 8px;
+            font-size: 0.72rem;
+            color: var(--text-muted);
+            font-family: 'JetBrains Mono', monospace;
+        }
+
+        .paper-actions {
+            margin-top: 14px;
+            padding-top: 12px;
+            border-top: 1px dashed var(--border-color);
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+
+        .action-link {
+            background: var(--bg-color);
+            border: 1px solid var(--border-color);
+            color: var(--text-muted);
+            padding: 4px 12px;
+            border-radius: 7px;
+            text-decoration: none;
+            font-size: 0.78rem;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            transition: all 0.2s;
+        }
+
+        .action-link:hover {
+            border-color: var(--accent-color);
+            color: var(--accent-hover);
+        }
+
+        /* ===== URL Analyzer Tab ===== */
+        .url-input-block {
+            background: var(--bot-bubble);
+            border: 1px solid var(--border-color);
+            border-radius: 14px;
+            padding: 28px;
+            margin-bottom: 24px;
+        }
+
+        .url-input-block h3 {
+            font-size: 1rem;
+            font-weight: 600;
+            color: #fff;
+            margin: 0 0 8px 0;
+        }
+
+        .url-input-block p {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            margin: 0 0 20px 0;
+            line-height: 1.5;
+        }
+
+        /* ===== Primary Button ===== */
+        .btn-teal {
+            background: linear-gradient(135deg, #0d9488, #0e7490);
+            color: white;
+            border: none;
+            padding: 11px 22px;
+            border-radius: 10px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            outline: none;
+            font-family: var(--font-family);
+        }
+
+        .btn-teal:hover {
+            background: linear-gradient(135deg, #14b8a6, #0891b2);
+            box-shadow: 0 4px 16px var(--accent-glow);
+            transform: translateY(-1px);
+        }
+
+        .btn-secondary {
+            background: var(--bot-bubble);
+            border: 1px solid var(--border-color);
+            color: var(--text-color);
+            padding: 10px 18px;
+            border-radius: 10px;
+            font-size: 0.88rem;
+            cursor: pointer;
+            outline: none;
+            transition: all 0.2s;
+            font-family: var(--font-family);
+        }
+
+        .btn-secondary:hover {
+            border-color: var(--accent-color);
+        }
+
+        /* ===== Analysis Result Block ===== */
+        .analysis-result {
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 24px;
+            margin-top: 20px;
+            display: none;
+        }
+
+        .analysis-result.visible { display: block; animation: slideIn 0.3s ease; }
+
+        .analysis-field {
+            margin-bottom: 18px;
+        }
+
+        .analysis-field-label {
+            font-size: 0.75rem;
+            font-weight: 700;
+            color: var(--accent-hover);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 6px;
+        }
+
+        .analysis-field-value {
+            font-size: 0.88rem;
+            line-height: 1.65;
+            color: var(--text-color);
+            opacity: 0.9;
+        }
+
+        .availability-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 4px 12px;
+            border-radius: 8px;
+            font-size: 0.8rem;
+            font-weight: 600;
+        }
+
+        .badge-yes { background: rgba(16, 185, 129, 0.15); color: #34d399; border: 1px solid rgba(52, 211, 153, 0.3); }
+        .badge-no { background: rgba(239, 68, 68, 0.12); color: #f87171; border: 1px solid rgba(248, 113, 113, 0.3); }
+        .badge-partial { background: rgba(251, 191, 36, 0.12); color: #fbbf24; border: 1px solid rgba(251, 191, 36, 0.3); }
+        .badge-unknown { background: rgba(100, 116, 139, 0.2); color: #94a3b8; border: 1px solid rgba(148, 163, 184, 0.3); }
+
+        /* ===== Stats Panel ===== */
+        .stats-row {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 14px;
+            margin-bottom: 24px;
+        }
+
+        .stat-card {
+            background: var(--bot-bubble);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 18px;
+            text-align: center;
+        }
+
+        .stat-value {
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--accent-hover);
+            font-family: 'JetBrains Mono', monospace;
+            line-height: 1;
+            margin-bottom: 6px;
+        }
+
+        .stat-label {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            font-weight: 500;
+        }
+
+        /* ===== Spinner ===== */
+        .spinner-block {
+            display: none;
+            align-items: center;
+            gap: 12px;
+            padding: 16px;
+            background: var(--accent-soft);
+            border: 1px solid var(--border-color);
+            border-radius: 10px;
+            margin-top: 16px;
+            font-size: 0.88rem;
+            color: var(--accent-hover);
+        }
+
+        .spinner-block.visible { display: flex; }
+
+        .spinner {
+            width: 20px;
+            height: 20px;
+            border: 2px solid var(--border-color);
+            border-top-color: var(--accent-hover);
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        /* ===== Sidebar pipeline steps ===== */
+        .pipeline-steps {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .pipeline-step {
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+            font-size: 0.8rem;
+            line-height: 1.5;
+            color: var(--text-muted);
+        }
+
+        .step-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: var(--accent-color);
+            flex-shrink: 0;
+            margin-top: 5px;
+            box-shadow: 0 0 6px var(--accent-color);
+        }
+
+        /* ===== Table ===== */
+        .lit-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.83rem;
+        }
+
+        .lit-table th, .lit-table td {
+            border: 1px solid var(--border-color);
+            padding: 10px 14px;
+            text-align: left;
+        }
+
+        .lit-table th {
+            background: rgba(13, 148, 136, 0.08);
+            color: var(--accent-hover);
+            font-weight: 600;
+            font-size: 0.78rem;
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
+        }
+
+        .lit-table tbody tr:hover { background: rgba(255,255,255,0.02); }
+
+        .table-container {
+            border-radius: 10px;
+            overflow: hidden;
+            border: 1px solid var(--border-color);
+        }
+    </style>
+</head>
+<body>
+    <div class="glow-container">
+        <div class="glow-orb orb-1"></div>
+        <div class="glow-orb orb-2"></div>
+    </div>
+
+    <div class="app-layout">
+        <!-- ===== Sidebar ===== -->
+        <aside class="app-sidebar" style="background-color: #0a1414; border-right: 1px solid #1e3535;">
+            <div class="sidebar-header">
+                <span class="logo-icon" style="background: linear-gradient(135deg, #0d9488, #0e7490);">
+                    <i data-lucide="book-open"></i>
+                </span>
+                <div class="logo-text">
+                    <h1 style="font-size: 1.05rem;">Literature Integrator</h1>
+                    <p style="color: #14b8a6;">AI PAPER PIPELINE</p>
+                </div>
+            </div>
+
+            <div style="margin-top: 10px; margin-bottom: 22px; padding-left: 5px;">
+                <a href="/projects" class="back-link">
+                    <i data-lucide="arrow-left" style="width: 16px; height: 16px;"></i> 返回專案目錄
+                </a>
+            </div>
+
+            <hr class="sidebar-divider" style="border-top-color: #1e3535;">
+
+            <!-- LLM Backend -->
+            <div class="sidebar-group">
+                <label class="setting-label"><i data-lucide="cpu"></i> LLM Backend</label>
+                <div style="margin-top: 12px;">
+                    <label class="setting-label" style="font-size: 0.75rem; opacity: 0.75; margin-bottom: 5px;">Analyzer Model:</label>
+                    <select id="model-selector" style="background-color: #0d1f1e; border-color: #1e3535;">
+                        <option value="gemini">Gemini 2.0 Flash ⚡ (Cloud)</option>
+                        <option value="qwen14b">Qwen2.5-14b (Local Ollama)</option>
+                        <option value="qwen7b" selected>Qwen2.5-7b (Local Ollama)</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- Pipeline Overview -->
+            <div class="sidebar-group">
+                <label class="setting-label"><i data-lucide="git-branch"></i> 系統管道</label>
+                <ul class="pipeline-steps" style="margin-top: 12px;">
+                    <li class="pipeline-step"><span class="step-dot"></span>arXiv REST API 爬蟲</li>
+                    <li class="pipeline-step"><span class="step-dot"></span>bioRxiv / medRxiv (Europe PMC)</li>
+                    <li class="pipeline-step"><span class="step-dot"></span>URL / DOI 自動解析</li>
+                    <li class="pipeline-step"><span class="step-dot"></span>LLM 六維度深度分析</li>
+                    <li class="pipeline-step"><span class="step-dot"></span>SQLite + SQLAlchemy 持久化</li>
+                    <li class="pipeline-step"><span class="step-dot"></span>Notion API 每日日誌同步</li>
+                    <li class="pipeline-step"><span class="step-dot"></span>Email / LINE 每日推播</li>
+                </ul>
+            </div>
+
+            <!-- Info Box -->
+            <div class="sidebar-group" style="background: rgba(13,148,136,0.07); border: 1px solid rgba(13,148,136,0.2); border-radius: 8px; padding: 14px; font-size: 0.78rem; line-height: 1.6; color: #5eead4;">
+                <strong>ℹ️ Demo Mode:</strong><br>
+                本介面為展示版，呈現系統實際運作功能與 AI 分析結果格式。正式部署版本會連接至本地 Ollama 或 Gemini API 進行即時文獻分析。
+            </div>
+
+            <div class="sidebar-footer" style="border-top-color: #1e3535;">
+                <div class="status-indicator online" style="background-color: #10b981; box-shadow: 0 0 8px #10b981;"></div>
+                <div class="status-info">
+                    <p class="status-title">Pipeline Active</p>
+                    <p class="status-sub">SQLite · Ollama · Notion</p>
+                </div>
+            </div>
+        </aside>
+
+        <!-- ===== Main Workspace ===== -->
+        <main class="app-main" style="padding: 36px; overflow-y: auto; height: 100vh;">
+            <div class="chat-header" style="margin-bottom: 24px;">
+                <h2>Literature Integrator 📚</h2>
+                <p>智慧科學文獻整合平台 — 自動蒐集 arXiv / bioRxiv / medRxiv 論文，AI 六維度深度分析，並自動推送至 Notion 日誌與 Email / LINE 通知。</p>
+            </div>
+
+            <!-- Stats -->
+            <div class="stats-row" id="stats-row">
+                <div class="stat-card">
+                    <div class="stat-value" id="stat-total">2,847</div>
+                    <div class="stat-label">📄 收錄文獻總數</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" id="stat-analyzed">1,923</div>
+                    <div class="stat-label">🤖 AI 分析完成</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" id="stat-sources">3</div>
+                    <div class="stat-label">🔗 資料來源</div>
+                </div>
+            </div>
+
+            <!-- Tab Navigation -->
+            <div class="tab-nav">
+                <button class="tab-btn active" id="tab-btn-browse" onclick="switchTab('browse')">
+                    <i data-lucide="library" style="width:15px;height:15px;"></i> 文獻瀏覽
+                </button>
+                <button class="tab-btn" id="tab-btn-analyze" onclick="switchTab('analyze')">
+                    <i data-lucide="link" style="width:15px;height:15px;"></i> URL 分析
+                </button>
+                <button class="tab-btn" id="tab-btn-daily" onclick="switchTab('daily')">
+                    <i data-lucide="calendar-check" style="width:15px;height:15px;"></i> 每日日報
+                </button>
+                <button class="tab-btn" id="tab-btn-arch" onclick="switchTab('arch')">
+                    <i data-lucide="layers" style="width:15px;height:15px;"></i> 系統架構
+                </button>
+            </div>
+
+            <!-- TAB 1: Browse -->
+            <section class="tab-pane active" id="pane-browse">
+                <div class="search-bar">
+                    <input type="text" id="search-input" placeholder="🔍 搜尋文獻標題、作者、關鍵字…" oninput="filterPapers()">
+                    <button class="btn-teal" onclick="filterPapers()">
+                        <i data-lucide="search" style="width:15px;height:15px;"></i> 搜尋
+                    </button>
+                </div>
+                <div class="filter-row">
+                    <button class="filter-chip active" id="chip-all" onclick="setFilter('all')">全部</button>
+                    <button class="filter-chip" id="chip-arxiv" onclick="setFilter('arxiv')">arXiv</button>
+                    <button class="filter-chip" id="chip-biorxiv" onclick="setFilter('biorxiv')">bioRxiv</button>
+                    <button class="filter-chip" id="chip-medrxiv" onclick="setFilter('medrxiv')">medRxiv</button>
+                    <button class="filter-chip" id="chip-analyzed" onclick="setFilter('analyzed')">✅ 已分析</button>
+                </div>
+                <div class="papers-grid" id="papers-grid">
+                    <!-- Rendered by JS -->
+                </div>
+            </section>
+
+            <!-- TAB 2: URL Analyzer -->
+            <section class="tab-pane" id="pane-analyze">
+                <div class="url-input-block">
+                    <h3>🔗 貼上 arXiv / bioRxiv / DOI 連結</h3>
+                    <p>系統將自動解析論文元數據，呼叫本地 LLM 完成六維度深度分析，並存入資料庫。</p>
+                    <div class="search-bar">
+                        <input type="url" id="url-input" placeholder="例如：https://arxiv.org/abs/2402.01234 或 https://doi.org/10.1101/2025.01.01.123456">
+                        <button class="btn-teal" onclick="analyzeURL()">
+                            <i data-lucide="zap" style="width:15px;height:15px;"></i> 分析
+                        </button>
+                    </div>
+                    <div id="url-spinner" class="spinner-block">
+                        <div class="spinner"></div>
+                        <span>正在解析論文元數據並呼叫 LLM 深度分析，請稍候…</span>
+                    </div>
+                </div>
+                <div class="analysis-result" id="analysis-result">
+                    <!-- Rendered by JS -->
+                </div>
+            </section>
+
+            <!-- TAB 3: Daily Report -->
+            <section class="tab-pane" id="pane-daily">
+                <div style="background: var(--bot-bubble); border: 1px solid var(--border-color); border-radius: 14px; padding: 28px; margin-bottom: 20px;">
+                    <h3 style="color: #fff; margin-top: 0; font-size: 1.1rem;">📧 每日文獻日報預覽</h3>
+                    <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 22px;">
+                        每天 08:00 自動執行排程，爬取當日最新論文，LLM 分析後以精美 HTML 格式發送至 Email，並同步推播至 LINE Messaging。
+                    </p>
+
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 22px;">
+                        <div style="background: var(--bg-color); border: 1px solid var(--border-color); border-radius: 10px; padding: 16px;">
+                            <div style="font-size: 0.75rem; color: var(--accent-hover); font-weight: 700; margin-bottom: 8px; text-transform: uppercase; letter-spacing: 1px;">📬 Email 推播</div>
+                            <div style="font-size: 0.83rem; color: var(--text-muted); line-height: 1.6;">精美 HTML 格式<br>Gmail SMTP · App Password<br>含摘要、標題、作者、DOI 連結</div>
+                        </div>
+                        <div style="background: var(--bg-color); border: 1px solid var(--border-color); border-radius: 10px; padding: 16px;">
+                            <div style="font-size: 0.75rem; color: var(--accent-hover); font-weight: 700; margin-bottom: 8px; text-transform: uppercase; letter-spacing: 1px;">💬 LINE 推播</div>
+                            <div style="font-size: 0.83rem; color: var(--text-muted); line-height: 1.6;">LINE Messaging API<br>精簡摘要 Push Message<br>含文獻數量、TOP-3 標題</div>
+                        </div>
+                        <div style="background: var(--bg-color); border: 1px solid var(--border-color); border-radius: 10px; padding: 16px;">
+                            <div style="font-size: 0.75rem; color: var(--accent-hover); font-weight: 700; margin-bottom: 8px; text-transform: uppercase; letter-spacing: 1px;">📓 Notion 同步</div>
+                            <div style="font-size: 0.83rem; color: var(--text-muted); line-height: 1.6;">Notion Developer API<br>自動建立 <code style="font-family: 'JetBrains Mono'; font-size: 0.75rem; color: #5eead4;">literature_日期</code> 子頁面<br>含完整 AI 分析結果</div>
+                        </div>
+                        <div style="background: var(--bg-color); border: 1px solid var(--border-color); border-radius: 10px; padding: 16px;">
+                            <div style="font-size: 0.75rem; color: var(--accent-hover); font-weight: 700; margin-bottom: 8px; text-transform: uppercase; letter-spacing: 1px;">🗓️ 排程設定</div>
+                            <div style="font-size: 0.83rem; color: var(--text-muted); line-height: 1.6;">Windows Task Scheduler<br>每日 08:00 自動觸發<br><code style="font-family: 'JetBrains Mono'; font-size: 0.75rem; color: #5eead4;">daily_job.py --mode daily</code></div>
+                        </div>
+                    </div>
+
+                    <button class="btn-teal" onclick="previewDailyReport()">
+                        <i data-lucide="eye" style="width:15px;height:15px;"></i> 預覽今日日報格式
+                    </button>
+                </div>
+
+                <div id="daily-preview" style="display:none; background: rgba(0,0,0,0.3); border: 1px solid var(--border-color); border-radius: 12px; padding: 28px; font-size: 0.88rem; line-height: 1.7;">
+                    <!-- Rendered by JS -->
+                </div>
+            </section>
+
+            <!-- TAB 4: Architecture -->
+            <section class="tab-pane" id="pane-arch">
+                <div style="background: var(--bot-bubble); border: 1px solid var(--border-color); border-radius: 14px; padding: 28px; margin-bottom: 20px;">
+                    <h3 style="color: #fff; margin-top: 0; font-size: 1.05rem;">🏗️ 系統架構概覽</h3>
+
+                    <!-- Module Table -->
+                    <div class="table-container" style="margin-top: 16px;">
+                        <table class="lit-table">
+                            <thead>
+                                <tr>
+                                    <th>模組</th>
+                                    <th>檔案</th>
+                                    <th>功能說明</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>📡 Crawler</td>
+                                    <td><code style="font-family: 'JetBrains Mono'; font-size: 0.78rem; color: #5eead4;">arxiv_crawler.py</code></td>
+                                    <td>arXiv REST API 爬蟲，支援關鍵字 + 日期範圍查詢</td>
+                                </tr>
+                                <tr>
+                                    <td>📡 Crawler</td>
+                                    <td><code style="font-family: 'JetBrains Mono'; font-size: 0.78rem; color: #5eead4;">biorxiv_crawler.py</code></td>
+                                    <td>bioRxiv / medRxiv (Europe PMC) 爬蟲，支援 2020–2026 歷史資料</td>
+                                </tr>
+                                <tr>
+                                    <td>🔗 Resolver</td>
+                                    <td><code style="font-family: 'JetBrains Mono'; font-size: 0.78rem; color: #5eead4;">paper_resolver.py</code></td>
+                                    <td>貼上任意 URL / DOI 自動解析論文元數據</td>
+                                </tr>
+                                <tr>
+                                    <td>🗄️ Database</td>
+                                    <td><code style="font-family: 'JetBrains Mono'; font-size: 0.78rem; color: #5eead4;">db_manager.py</code></td>
+                                    <td>SQLite + SQLAlchemy ORM，論文資料持久化</td>
+                                </tr>
+                                <tr>
+                                    <td>🤖 LLM</td>
+                                    <td><code style="font-family: 'JetBrains Mono'; font-size: 0.78rem; color: #5eead4;">llm_analyzer.py</code></td>
+                                    <td>多後端 LLM 分析：Qwen2.5 / Gemini 2.0 Flash</td>
+                                </tr>
+                                <tr>
+                                    <td>📓 Integrator</td>
+                                    <td><code style="font-family: 'JetBrains Mono'; font-size: 0.78rem; color: #5eead4;">notion_client.py</code></td>
+                                    <td>Notion API 整合，每日自動建立日誌子頁面</td>
+                                </tr>
+                                <tr>
+                                    <td>📧 Notifier</td>
+                                    <td><code style="font-family: 'JetBrains Mono'; font-size: 0.78rem; color: #5eead4;">notifier.py</code></td>
+                                    <td>Gmail SMTP Email + LINE Messaging API 每日推播</td>
+                                </tr>
+                                <tr>
+                                    <td>⏰ Scheduler</td>
+                                    <td><code style="font-family: 'JetBrains Mono'; font-size: 0.78rem; color: #5eead4;">daily_job.py</code></td>
+                                    <td>每日自動化排程，支援 daily / historical 兩種模式</td>
+                                </tr>
+                                <tr>
+                                    <td>📊 Dashboard</td>
+                                    <td><code style="font-family: 'JetBrains Mono'; font-size: 0.78rem; color: #5eead4;">app.py</code></td>
+                                    <td>Streamlit 互動儀表板，深色玻璃質感 UI</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- LLM Comparison -->
+                <div style="background: var(--bot-bubble); border: 1px solid var(--border-color); border-radius: 14px; padding: 24px;">
+                    <h3 style="color: #fff; margin-top: 0; font-size: 1.05rem;">🤖 LLM 後端比較</h3>
+                    <div class="table-container" style="margin-top: 14px;">
+                        <table class="lit-table">
+                            <thead>
+                                <tr>
+                                    <th>後端</th>
+                                    <th>模型</th>
+                                    <th>環境</th>
+                                    <th>速度</th>
+                                    <th>精度</th>
+                                    <th>成本</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td><code style="font-family: 'JetBrains Mono'; font-size: 0.78rem; color: #5eead4;">qwen14b</code></td>
+                                    <td>Qwen2.5:14b</td>
+                                    <td>本地 Ollama</td>
+                                    <td>中</td>
+                                    <td>⭐⭐⭐⭐⭐</td>
+                                    <td>免費</td>
+                                </tr>
+                                <tr>
+                                    <td><code style="font-family: 'JetBrains Mono'; font-size: 0.78rem; color: #5eead4;">qwen7b</code></td>
+                                    <td>Qwen2.5:7b</td>
+                                    <td>本地 Ollama</td>
+                                    <td>快</td>
+                                    <td>⭐⭐⭐⭐</td>
+                                    <td>免費</td>
+                                </tr>
+                                <tr>
+                                    <td><code style="font-family: 'JetBrains Mono'; font-size: 0.78rem; color: #5eead4;">gemini</code></td>
+                                    <td>Gemini 2.0 Flash</td>
+                                    <td>雲端</td>
+                                    <td>極快</td>
+                                    <td>⭐⭐⭐⭐⭐</td>
+                                    <td>有限免費</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <!-- 6 Analysis Fields -->
+                    <div style="margin-top: 24px;">
+                        <h4 style="color: var(--accent-hover); font-size: 0.85rem; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 14px;">📋 AI 六維度分析欄位</h4>
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                            <div style="background: var(--bg-color); border: 1px solid var(--border-color); border-radius: 8px; padding: 12px;">
+                                <div style="font-weight: 600; color: #fff; margin-bottom: 4px; font-size: 0.85rem;">💡 中文摘要</div>
+                                <div style="font-size: 0.78rem; color: var(--text-muted);">2~4 句精簡說明，包含核心方法與貢獻</div>
+                            </div>
+                            <div style="background: var(--bg-color); border: 1px solid var(--border-color); border-radius: 8px; padding: 12px;">
+                                <div style="font-weight: 600; color: #fff; margin-bottom: 4px; font-size: 0.85rem;">💭 理論假設</div>
+                                <div style="font-size: 0.78rem; color: var(--text-muted);">核心科學假設或生物學/計算猜想</div>
+                            </div>
+                            <div style="background: var(--bg-color); border: 1px solid var(--border-color); border-radius: 8px; padding: 12px;">
+                                <div style="font-weight: 600; color: #fff; margin-bottom: 4px; font-size: 0.85rem;">🎯 實驗動機</div>
+                                <div style="font-size: 0.78rem; color: var(--text-muted);">想解決的痛點與研究缺口</div>
+                            </div>
+                            <div style="background: var(--bg-color); border: 1px solid var(--border-color); border-radius: 8px; padding: 12px;">
+                                <div style="font-weight: 600; color: #fff; margin-bottom: 4px; font-size: 0.85rem;">🏆 SOTA 比較</div>
+                                <div style="font-size: 0.78rem; color: var(--text-muted);">與現有最先進方法的具體指標比較</div>
+                            </div>
+                            <div style="background: var(--bg-color); border: 1px solid var(--border-color); border-radius: 8px; padding: 12px;">
+                                <div style="font-weight: 600; color: #fff; margin-bottom: 4px; font-size: 0.85rem;">💻 程式碼可用性</div>
+                                <div style="font-size: 0.78rem; color: var(--text-muted);">YES / NO / PARTIAL / UNKNOWN + 連結</div>
+                            </div>
+                            <div style="background: var(--bg-color); border: 1px solid var(--border-color); border-radius: 8px; padding: 12px;">
+                                <div style="font-weight: 600; color: #fff; margin-bottom: 4px; font-size: 0.85rem;">📂 資料集可用性</div>
+                                <div style="font-size: 0.78rem; color: var(--text-muted);">YES / NO / PARTIAL / UNKNOWN + 連結</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <script>
+        // === Demo Data ===
+        const DEMO_PAPERS = [
+            {
+                id: 1, source: "arxiv", title: "HelixFold3: An End-to-End Biomolecular Structure Prediction Model with Accurate and Efficient Post-Training",
+                authors: "PaddleHelix Team", date: "2025-05-20",
+                summary: "提出 HelixFold3，端到端生物分子結構預測模型，以高精度的後訓練策略顯著改善 AlphaFold3 的對接精度，在蛋白質–小分子複合體預測上達到 SOTA 水準。",
+                hypothesis: "後訓練對抗樣本增強可修正 AlphaFold3 在配體對接位置的系統性誤差。",
+                motivation: "AlphaFold3 在複合體結構（尤其是蛋白質–配體）的精度仍有不足，影響藥物設計可靠性。",
+                sota: "在 PoseBusters 基準上 RMSD<2Å 成功率提升 12%，優於原始 AlphaFold3。",
+                code: "YES", dataset: "YES",
+                tags: ["Protein Structure", "Drug Design", "AlphaFold3", "Post-Training"], analyzed: true
+            },
+            {
+                id: 2, source: "biorxiv", title: "Single-cell atlas of the human thymus reveals a comprehensive roadmap of T-cell maturation",
+                authors: "Park J. et al.", date: "2025-05-18",
+                summary: "建立首個跨越胎兒至成人的人類胸腺單細胞圖譜，揭示 T 細胞成熟的完整軌跡，鑑定出 43 種細胞亞型及關鍵轉錄因子調控網絡。",
+                hypothesis: "胸腺中不同細胞微環境通過特定轉錄因子梯度協調 T 細胞命運決定。",
+                motivation: "T 細胞發育的細胞異質性在分子層面尚不明確，阻礙自身免疫疾病與免疫治療研究。",
+                sota: "識別 43 種獨特胸腺細胞亞群，較前代圖譜解析度提升 3 倍，新增 12 種稀有前體亞型。",
+                code: "PARTIAL", dataset: "YES",
+                tags: ["Single-cell", "Thymus", "T-cell", "scRNA-seq", "Immunology"], analyzed: true
+            },
+            {
+                id: 3, source: "medrxiv", title: "CRISPR-based pan-genomic diagnostics for rapid detection of antibiotic-resistant pathogens",
+                authors: "Martinez R. et al.", date: "2025-05-15",
+                summary: "開發基於 CRISPR-Cas13 的泛基因組即時診斷平台，能在 45 分鐘內從臨床樣本檢測多重抗藥性病原體，靈敏度達 98.7%。",
+                hypothesis: "CRISPR-Cas13 的高特異性 RNA 目標識別可配合泛基因組引物設計實現廣譜抗藥性基因偵測。",
+                motivation: "抗藥性細菌感染的傳統培養診斷耗時 24–72 小時，嚴重延誤臨床治療決策。",
+                sota: "靈敏度 98.7%、特異性 99.4%，較 PCR 標準方法速度快 8 倍，成本降低 70%。",
+                code: "NO", dataset: "PARTIAL",
+                tags: ["CRISPR", "Diagnostics", "AMR", "Pathogen Detection", "Clinical"], analyzed: true
+            },
+            {
+                id: 4, source: "arxiv", title: "FineMath: A Fine-grained Mathematical Reasoning Dataset for LLM Evaluation",
+                authors: "Chen X. et al.", date: "2025-05-12",
+                summary: "提出 FineMath，一個涵蓋 12 個數學子領域、共 42,000 題的細粒度 LLM 數學推理基準，揭示現有模型在符號計算與多步推理上的系統性缺陷。",
+                hypothesis: "現有 LLM 數學基準過於粗粒度，無法揭示模型在特定子領域（如組合數學、數論）的能力短板。",
+                motivation: "GSM8K 等常見基準已被頂尖模型近乎飽和，需要更具區分力的精細評測體系。",
+                sota: "GPT-4o 在 FineMath 上平均得分 67.3%，遠低於 MATH 基準的 91.5%，揭示顯著的能力高估問題。",
+                code: "YES", dataset: "YES",
+                tags: ["LLM", "Mathematics", "Evaluation", "Benchmark", "Reasoning"], analyzed: true
+            },
+            {
+                id: 5, source: "biorxiv", title: "Spatial transcriptomics reveals tumor microenvironment architecture in pancreatic cancer",
+                authors: "Liu Y. et al.", date: "2025-05-10",
+                summary: "利用高解析度空間轉錄組技術解析胰臟癌腫瘤微環境的空間組織結構，鑑定出 CAF 亞型與 T 細胞耗竭的空間共定位模式，為免疫治療抵抗機制提供新見解。",
+                hypothesis: "胰臟癌基質成纖維細胞亞型的空間分佈決定了局部免疫抑制梯度，形成 T 細胞物理排斥屏障。",
+                motivation: "胰臟癌免疫治療響應率極低（<5%），腫瘤微環境的免疫抑制機制在空間層面未被充分解析。",
+                sota: "發現 3 種 CAF 亞型的空間排列模式與患者生存期呈顯著相關（HR=2.3, p<0.001），優於單細胞測序分析。",
+                code: "YES", dataset: "PARTIAL",
+                tags: ["Spatial Transcriptomics", "Pancreatic Cancer", "TME", "Immunotherapy", "CAF"], analyzed: false
+            }
+        ];
+
+        let currentFilter = 'all';
+        let searchQuery = '';
+
+        function switchTab(name) {
+            document.querySelectorAll('.tab-pane').forEach(p => p.classList.remove('active'));
+            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+            document.getElementById('pane-' + name).classList.add('active');
+            document.getElementById('tab-btn-' + name).classList.add('active');
+            lucide.createIcons();
+        }
+
+        function setFilter(f) {
+            currentFilter = f;
+            document.querySelectorAll('.filter-chip').forEach(c => c.classList.remove('active'));
+            document.getElementById('chip-' + f).classList.add('active');
+            renderPapers();
+        }
+
+        function filterPapers() {
+            searchQuery = document.getElementById('search-input').value.toLowerCase();
+            renderPapers();
+        }
+
+        function renderPapers() {
+            const grid = document.getElementById('papers-grid');
+            let papers = DEMO_PAPERS;
+
+            if (currentFilter === 'analyzed') papers = papers.filter(p => p.analyzed);
+            else if (currentFilter !== 'all') papers = papers.filter(p => p.source === currentFilter);
+
+            if (searchQuery) {
+                papers = papers.filter(p =>
+                    p.title.toLowerCase().includes(searchQuery) ||
+                    p.authors.toLowerCase().includes(searchQuery) ||
+                    p.tags.some(t => t.toLowerCase().includes(searchQuery))
+                );
+            }
+
+            grid.innerHTML = papers.map(p => {
+                const badgeClass = { arxiv: 'badge-arxiv', biorxiv: 'badge-biorxiv', medrxiv: 'badge-medrxiv' }[p.source] || 'badge-arxiv';
+                const sourceName = { arxiv: 'arXiv', biorxiv: 'bioRxiv', medrxiv: 'medRxiv' }[p.source] || p.source;
+                const codeClass = { YES: 'badge-yes', NO: 'badge-no', PARTIAL: 'badge-partial', UNKNOWN: 'badge-unknown' }[p.code] || 'badge-unknown';
+                const tags = p.tags.map(t => `<span class="paper-tag">${t}</span>`).join('');
+
+                return `
+                <div class="paper-card">
+                    <div class="paper-card-header">
+                        <div class="paper-title">${p.title}</div>
+                        <span class="paper-source-badge ${badgeClass}">${sourceName}</span>
+                    </div>
+                    <div class="paper-meta">
+                        <span>👤 ${p.authors}</span>
+                        <span>📅 ${p.date}</span>
+                        ${p.analyzed ? '<span style="color: #34d399;">✅ AI 分析完成</span>' : '<span style="color: #94a3b8;">⏳ 待分析</span>'}
+                    </div>
+                    ${p.analyzed ? `
+                    <div class="paper-summary"><strong>💡 中文摘要：</strong>${p.summary}</div>
+                    <div class="paper-tags">${tags}</div>
+                    <div class="paper-actions">
+                        <span class="availability-badge ${codeClass}">💻 Code: ${p.code}</span>
+                    </div>` : `<div class="paper-summary" style="opacity:0.55; font-style:italic;">等待 LLM 分析…</div><div class="paper-tags">${tags}</div>`}
+                </div>`;
+            }).join('');
+
+            lucide.createIcons();
+        }
+
+        function analyzeURL() {
+            const url = document.getElementById('url-input').value.trim();
+            if (!url) { alert('請輸入有效的 arXiv / bioRxiv / DOI 連結'); return; }
+
+            const spinner = document.getElementById('url-spinner');
+            const result = document.getElementById('analysis-result');
+            spinner.classList.add('visible');
+            result.classList.remove('visible');
+
+            setTimeout(() => {
+                spinner.classList.remove('visible');
+                result.classList.add('visible');
+                result.innerHTML = `
+                    <h3 style="color: #fff; margin-top: 0; font-size: 1rem;">✅ 分析完成 — <span style="color: var(--accent-hover); font-size: 0.9rem;">${url}</span></h3>
+                    <div class="analysis-field">
+                        <div class="analysis-field-label">📄 論文標題</div>
+                        <div class="analysis-field-value" style="font-weight:600; color: #fff;">Multiscale Graph Transformer for Drug-Target Interaction Prediction with Biological Knowledge Integration</div>
+                    </div>
+                    <div class="analysis-field">
+                        <div class="analysis-field-label">👤 作者</div>
+                        <div class="analysis-field-value">Wang L., Zhang H., Li M., et al.</div>
+                    </div>
+                    <div class="analysis-field">
+                        <div class="analysis-field-label">💡 中文摘要</div>
+                        <div class="analysis-field-value">本研究提出多尺度圖 Transformer 架構 (MGT-DTI)，整合蛋白質序列、結構及功能本體資訊，用於藥物–靶點交互預測。透過階層式圖注意力機制捕捉跨尺度特徵，在 BindingDB 和 Davis 兩大基準上達到最新 SOTA 水準。</div>
+                    </div>
+                    <div class="analysis-field">
+                        <div class="analysis-field-label">💭 理論假設</div>
+                        <div class="analysis-field-value">藥物–靶點交互由分子的多尺度特徵共同決定，單一尺度特徵提取（如單純 GNN 或 Transformer）無法充分捕捉藥物與蛋白質在功能上的互補關係。</div>
+                    </div>
+                    <div class="analysis-field">
+                        <div class="analysis-field-label">🎯 實驗動機</div>
+                        <div class="analysis-field-value">現有 DTI 模型忽略蛋白質功能本體（Gene Ontology）資訊，且缺乏對配體-受體間跨模態特徵融合的系統設計，導致泛化能力有限。</div>
+                    </div>
+                    <div class="analysis-field">
+                        <div class="analysis-field-label">🏆 SOTA 比較</div>
+                        <div class="analysis-field-value">在 Davis 資料集 MSE 0.218（較 DeepDTA 降低 23%）；BindingDB AUC 0.961（較 MolTrans 提升 2.8%）。</div>
+                    </div>
+                    <div style="display: flex; gap: 12px; margin-top: 8px;">
+                        <div>
+                            <div class="analysis-field-label" style="margin-bottom: 6px;">💻 程式碼</div>
+                            <span class="availability-badge badge-yes">✓ YES</span>
+                        </div>
+                        <div>
+                            <div class="analysis-field-label" style="margin-bottom: 6px;">📂 資料集</div>
+                            <span class="availability-badge badge-yes">✓ YES</span>
+                        </div>
+                    </div>
+                `;
+                lucide.createIcons();
+            }, 2200);
+        }
+
+        function previewDailyReport() {
+            const preview = document.getElementById('daily-preview');
+            preview.style.display = 'block';
+            const today = new Date().toLocaleDateString('zh-TW', { year: 'numeric', month: '2-digit', day: '2-digit' });
+            preview.innerHTML = `
+                <div style="border-bottom: 1px solid var(--border-color); padding-bottom: 16px; margin-bottom: 20px;">
+                    <h2 style="color: var(--accent-hover); margin: 0 0 8px 0; font-size: 1.15rem;">📚 Literature Daily Report — ${today}</h2>
+                    <p style="color: var(--text-muted); margin: 0; font-size: 0.82rem;">今日共蒐集 <strong style="color: #fff;">18 篇</strong>新文獻 | AI 分析完成 <strong style="color: #fff;">18/18</strong> | 推播目標：Email + LINE + Notion</p>
+                </div>
+                <h3 style="color: #fff; font-size: 0.95rem; margin: 0 0 14px 0;">🏆 今日 Top-3 精選論文</h3>
+                ${[
+                    { rank: 1, title: "HelixFold3: An End-to-End Biomolecular Structure Prediction Model", source: "arXiv", summary: "端到端生物分子結構預測模型，後訓練策略顯著改善 AlphaFold3 的對接精度，在蛋白質–小分子複合體預測上達到 SOTA。" },
+                    { rank: 2, title: "CRISPR-based pan-genomic diagnostics for rapid detection of antibiotic-resistant pathogens", source: "medRxiv", summary: "基於 CRISPR-Cas13 的泛基因組即時診斷平台，45 分鐘內從臨床樣本檢測多重抗藥性病原體，靈敏度達 98.7%。" },
+                    { rank: 3, title: "Single-cell atlas of the human thymus reveals a comprehensive roadmap of T-cell maturation", source: "bioRxiv", summary: "建立首個跨越胎兒至成人的人類胸腺單細胞圖譜，揭示 T 細胞成熟的完整軌跡，鑑定 43 種細胞亞型。" }
+                ].map(p => `
+                    <div style="background: var(--bg-color); border: 1px solid var(--border-color); border-radius: 10px; padding: 14px; margin-bottom: 12px;">
+                        <div style="display: flex; justify-content: space-between; margin-bottom: 6px;">
+                            <span style="font-size: 0.8rem; color: var(--accent-hover); font-weight: 700;">🥇 #${p.rank}</span>
+                            <span style="font-size: 0.72rem; color: var(--text-muted);">[${p.source}]</span>
+                        </div>
+                        <div style="font-weight: 600; color: #fff; margin-bottom: 6px; font-size: 0.88rem; line-height: 1.4;">${p.title}</div>
+                        <div style="font-size: 0.82rem; color: var(--text-muted); line-height: 1.55;">${p.summary}</div>
+                    </div>
+                `).join('')}
+                <div style="margin-top: 18px; padding-top: 16px; border-top: 1px solid var(--border-color); font-size: 0.78rem; color: var(--text-muted);">
+                    📩 此報告已自動推送至 Gmail SMTP &nbsp;|&nbsp; 💬 LINE Messaging API &nbsp;|&nbsp; 📓 Notion Daily Log
+                </div>
+            `;
+            lucide.createIcons();
+        }
+
+        // Init
+        document.addEventListener('DOMContentLoaded', () => {
+            renderPapers();
+            lucide.createIcons();
+        });
+    </script>
+</body>
+</html>
