@@ -36,3 +36,35 @@ class VisitorStats(db.Model):
 
     def __repr__(self):
         return f"VisitorStats('{self.page_path}', visits={self.visit_count})"
+
+
+class HackMDNote(db.Model):
+    """HackMD 同步筆記模型 — 儲存從 HackMD API 拉取的公開筆記"""
+    __tablename__ = 'hackmd_note'
+
+    id          = db.Column(db.Integer, primary_key=True)
+    hackmd_id   = db.Column(db.String(64), unique=True, nullable=False)  # HackMD note ID
+    short_id    = db.Column(db.String(32), nullable=True)                # HackMD short ID
+    title       = db.Column(db.String(300), nullable=False, default='Untitled')
+    tags        = db.Column(db.String(500), nullable=True)               # JSON array string
+    content     = db.Column(db.Text, nullable=True)                      # Markdown 原文
+    permalink   = db.Column(db.String(200), nullable=True)               # 自訂永久連結
+    publish_link= db.Column(db.String(400), nullable=True)               # 完整公開 URL
+    read_permission  = db.Column(db.String(20), default='guest')        # guest / signed_in / owner
+    write_permission = db.Column(db.String(20), default='owner')
+    hackmd_created_at = db.Column(db.DateTime, nullable=True)            # HackMD 建立時間
+    hackmd_updated_at = db.Column(db.DateTime, nullable=True)            # HackMD 最後修改時間
+    synced_at   = db.Column(db.DateTime, default=datetime.utcnow)        # 最後同步時間
+
+    def __repr__(self):
+        return f"HackMDNote('{self.title}', synced={self.synced_at})"
+
+    def tags_list(self):
+        """回傳標籤列表"""
+        import json
+        if not self.tags:
+            return []
+        try:
+            return json.loads(self.tags)
+        except Exception:
+            return []

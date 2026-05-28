@@ -1,0 +1,199 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div style="max-width: 860px; margin: 0 auto;">
+
+    <!-- ══ 麵包屑 ═════════════════════════════════════════ -->
+    <div class="fade-in-up" style="margin-bottom: 20px; font-family: 'Space Mono', monospace; font-size: 0.8rem; color: var(--text-dim);">
+        <a href="/hackmd" style="color: var(--biolum); border: none;">HackMD</a>
+        <span style="margin: 0 8px;">›</span>
+        <span>{{ note.title }}</span>
+    </div>
+
+    <!-- ══ 文章標頭 ══════════════════════════════════════ -->
+    <div class="ocean-panel fade-in-up delay-1" style="padding: 28px 36px; margin-bottom: 24px;">
+
+        <h1 style="font-size: 1.75rem; font-weight: 700; margin-bottom: 16px; margin-top: 0;
+                   background: linear-gradient(135deg, var(--moon-silver), var(--biolum));
+                   -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;">
+            {{ note.title }}
+        </h1>
+
+        <!-- 標籤 -->
+        {% if note.tags_list() %}
+        <div style="margin-bottom: 16px;">
+            {% for tag in note.tags_list() %}
+            <a href="/hackmd?tag={{ tag }}" class="tag" style="text-decoration: none; border-bottom: none;"># {{ tag }}</a>
+            {% endfor %}
+        </div>
+        {% endif %}
+
+        <!-- Meta 資訊 -->
+        <div style="display: flex; gap: 24px; flex-wrap: wrap; font-family: 'Space Mono', monospace; font-size: 0.78rem; color: var(--text-dim);">
+            {% if note.hackmd_created_at %}
+            <span>
+                <span style="color: var(--biolum);">建立</span>
+                {{ note.hackmd_created_at.strftime('%Y-%m-%d') }}
+            </span>
+            {% endif %}
+            {% if note.hackmd_updated_at %}
+            <span>
+                <span style="color: var(--biolum);">更新</span>
+                {{ note.hackmd_updated_at.strftime('%Y-%m-%d') }}
+            </span>
+            {% endif %}
+            <span>
+                <span style="color: var(--biolum);">同步</span>
+                {{ note.synced_at.strftime('%Y-%m-%d %H:%M') }}
+            </span>
+            {% if note.publish_link %}
+            <a href="{{ note.publish_link }}" target="_blank"
+               style="color: var(--biolum); border-bottom: 1px solid rgba(0,245,212,0.3);">
+                在 HackMD 查看 ↗
+            </a>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- ══ 文章內容 ══════════════════════════════════════ -->
+    <div class="ocean-panel fade-in-up delay-2" style="padding: 36px 40px;">
+        <div class="hackmd-content">
+            {{ content_html | safe }}
+        </div>
+    </div>
+
+    <!-- ══ 底部操作列 ════════════════════════════════════ -->
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 28px; margin-bottom: 16px; flex-wrap: wrap; gap: 12px;">
+        <a href="/hackmd" class="btn">[ ← 回到筆記列表 ]</a>
+        {% if note.publish_link %}
+        <a href="{{ note.publish_link }}" target="_blank" class="btn">[ 在 HackMD 開啟 ↗ ]</a>
+        {% endif %}
+    </div>
+
+</div>
+
+<!-- ══ HackMD Markdown 渲染樣式 ══════════════════════════ -->
+<style>
+.hackmd-content {
+    color: var(--text-primary);
+    line-height: 1.8;
+    font-size: 1rem;
+}
+
+.hackmd-content h1,
+.hackmd-content h2,
+.hackmd-content h3,
+.hackmd-content h4 {
+    color: var(--moon-silver);
+    margin-top: 2em;
+    margin-bottom: 0.6em;
+    line-height: 1.3;
+    -webkit-text-fill-color: var(--moon-silver);
+}
+
+.hackmd-content h1 { font-size: 1.7rem; border-bottom: 1px solid var(--card-border); padding-bottom: 10px; }
+.hackmd-content h2 { font-size: 1.35rem; }
+.hackmd-content h3 { font-size: 1.15rem; color: var(--ocean-foam); -webkit-text-fill-color: var(--ocean-foam); }
+.hackmd-content h4 { font-size: 1rem; color: var(--biolum); -webkit-text-fill-color: var(--biolum); }
+
+.hackmd-content p { margin-bottom: 1.1em; }
+
+.hackmd-content a {
+    color: var(--biolum);
+    border-bottom: 1px solid rgba(0, 245, 212, 0.35);
+    text-decoration: none;
+    transition: all 0.2s;
+}
+.hackmd-content a:hover {
+    color: var(--ocean-foam);
+    border-bottom-color: var(--ocean-foam);
+}
+
+.hackmd-content code {
+    font-family: 'Space Mono', monospace;
+    font-size: 0.87em;
+    color: var(--biolum);
+    background: rgba(0, 245, 212, 0.08);
+    padding: 2px 7px;
+    border-radius: 4px;
+}
+
+.hackmd-content pre {
+    background: rgba(2, 13, 26, 0.85);
+    border: 1px solid var(--glass-border);
+    border-radius: 10px;
+    padding: 20px 22px;
+    overflow-x: auto;
+    margin: 1.5em 0;
+    position: relative;
+}
+
+.hackmd-content pre code {
+    background: none;
+    padding: 0;
+    font-size: 0.88em;
+    color: var(--pearl);
+    border-radius: 0;
+}
+
+.hackmd-content blockquote {
+    border-left: 3px solid var(--biolum);
+    background: rgba(0, 245, 212, 0.05);
+    margin: 1.5em 0;
+    padding: 12px 20px;
+    border-radius: 0 8px 8px 0;
+    color: var(--text-secondary);
+    font-style: italic;
+}
+
+.hackmd-content ul, .hackmd-content ol {
+    padding-left: 1.8em;
+    margin-bottom: 1.1em;
+}
+.hackmd-content li { margin-bottom: 0.4em; }
+
+.hackmd-content table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 1.5em 0;
+    font-size: 0.9rem;
+    overflow: hidden;
+    border-radius: 8px;
+    border: 1px solid var(--glass-border);
+}
+.hackmd-content th {
+    background: rgba(14, 76, 138, 0.4);
+    color: var(--moon-silver);
+    padding: 10px 14px;
+    text-align: left;
+    font-family: 'Space Mono', monospace;
+    font-size: 0.82rem;
+    letter-spacing: 0.5px;
+}
+.hackmd-content td {
+    border-top: 1px solid var(--glass-border);
+    padding: 9px 14px;
+    color: var(--text-secondary);
+}
+.hackmd-content tr:hover td { background: rgba(0, 245, 212, 0.04); }
+
+.hackmd-content img {
+    max-width: 100%;
+    border-radius: 8px;
+    border: 1px solid var(--card-border);
+    margin: 1em 0;
+}
+
+.hackmd-content hr {
+    border: none;
+    border-top: 1px solid var(--card-border);
+    margin: 2em 0;
+}
+
+/* Syntax highlight 基礎修飾 */
+.hackmd-content .highlight, .hackmd-content .codehilite {
+    border-radius: 10px;
+    overflow: hidden;
+}
+</style>
+{% endblock %}

@@ -1,140 +1,181 @@
 {% extends "base.html" %}
 
 {% block content %}
-<h2>> Accessing_Project_Directory</h2>
-<p>本系統收錄之核心研究專案與本機端 AI 實驗平台：</p>
-<br>
+<div style="max-width: 1100px; margin: 0 auto;">
 
-<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 25px; margin-top: 20px;">
-    
-    <!-- 專案 1: BioRec -->
-    <div class="container" style="border: 2px solid #0F0; background: rgba(0, 15, 0, 0.9); margin: 0; padding: 25px; display: flex; flex-direction: column; justify-content: space-between; border-radius: 8px;">
-        <div>
-            <h3 style="border-bottom: 2px solid #0F0; padding-bottom: 10px; margin-top: 0; color: #0F0;">
-                🧬 BioRec: Drug Rec Suite
-            </h3>
-            
-            <p style="line-height: 1.6; opacity: 0.9; font-size: 0.95em;">
-                基於 <strong>STRING 蛋白質交互作用網路</strong>與 <strong>DrugBank 靶點映射</strong>，構建<strong>最短路徑拓撲鄰近矩陣 (SPPM)</strong>。
-                整合並對比了奇異值分解 (SVD) 與客製化 <strong>PyTorch 圖卷積神經網路 (GCN)</strong>，並建置包含 Node2Vec、RWR 等 7 種演算法的<strong>共識預測引擎</strong>。
-            </p>
-            
-            <br>
-            <div style="border-top: 1px dotted #0F0; padding-top: 15px; font-size: 0.88em;">
-                <strong>核心架構與技術棧：</strong>
-                <ul style="list-style: none; padding-left: 15px; margin-top: 8px;">
-                    <li>> PyTorch / Graph Neural Networks</li>
-                    <li>> Matrix SVD Factorization</li>
-                    <li>> SQLite Stream Ingestion</li>
-                    <li>> FastAPI & Chart.js Web Suite</li>
-                </ul>
-            </div>
-        </div>
-        
-        <div style="margin-top: 30px; text-align: center;">
-            <a href="/biorec" class="btn" style="display: inline-block; width: 90%; font-weight: bold; border-width: 2px; padding: 8px 15px;">
-                [ ENTER BIOTECH MAINFRAME ]
-            </a>
-        </div>
+    <div class="fade-in-up" style="margin-bottom: 32px;">
+        <h2>Projects 🌊</h2>
+        <p style="color: var(--text-secondary);">核心研究專案與地端 AI 實驗平台 — 每個專案都是一次深潛</p>
     </div>
 
-    <!-- 專案 2: Portrait -->
-    <div class="container" style="border: 2px solid #0F0; background: rgba(0, 15, 0, 0.9); margin: 0; padding: 25px; display: flex; flex-direction: column; justify-content: space-between; border-radius: 8px;">
-        <div>
-            <h3 style="border-bottom: 2px solid #0F0; padding-bottom: 10px; margin-top: 0; color: #0F0;">
-                💬 Portrait: Persona Analyzer
-            </h3>
-            
-            <p style="line-height: 1.6; opacity: 0.9; font-size: 0.95em;">
-                注重隱私的<strong>地端 LINE 聊天記錄人物誌分析器</strong>。
-                利用 <strong>LangChain</strong> 與本地端 <strong>Ollama LLM</strong> 提取發言者性格、目標、喜好、經歷等八大核心維度，
-                並結合 <strong>ChromaDB 向量記憶庫</strong>，支援具有長期記憶的對話 Q&A 助理與對話文字雲生成。
-            </p>
-            
-            <br>
-            <div style="border-top: 1px dotted #0F0; padding-top: 15px; font-size: 0.88em;">
-                <strong>核心架構與技術棧：</strong>
-                <ul style="list-style: none; padding-left: 15px; margin-top: 8px;">
-                    <li>> LangChain & ChromaDB (Local RAG)</li>
-                    <li>> Ollama Llama / Qwen LLM Engine</li>
-                    <li>> Streamlit User Interface</li>
-                    <li>> Wordcloud Visualization</li>
+    <div class="project-grid">
+
+        <!-- ══ 專案 1: BioRec ══════════════════════════════ -->
+        <div class="project-card fade-in-up delay-1">
+            <div>
+                <h3>🧬 BioRec: Drug Rec Suite</h3>
+                <p>
+                    基於 <strong>STRING PPI 網路</strong>與 <strong>DrugBank 靶點映射</strong>，
+                    構建最短路徑拓撲鄰近矩陣（SPPM）。整合 SVD 與客製化
+                    <strong>PyTorch GCN</strong>，建置 Node2Vec、RWR 等
+                    7 種演算法的<strong>共識預測引擎</strong>，支援藥物重定向發現。
+                </p>
+                <ul class="tech-list">
+                    <li>PyTorch / Graph Neural Networks (GCN)</li>
+                    <li>Matrix SVD Factorization</li>
+                    <li>FastAPI & Chart.js Web Suite</li>
+                    <li>SQLite + Node2Vec + RWR 共識推薦</li>
                 </ul>
+                <div>
+                    <span class="tag">PyTorch</span><span class="tag">GNN</span>
+                    <span class="tag">FastAPI</span><span class="tag">Drug Repurposing</span>
+                </div>
+            </div>
+            <div style="margin-top: 20px;">
+                <a href="/biorec" class="btn btn-primary" style="display: block; text-align: center;">[ Launch BioRec ]</a>
             </div>
         </div>
-        
-        <div style="margin-top: 30px; text-align: center;">
-            <a href="/portrait" class="btn" style="display: inline-block; width: 90%; font-weight: bold; border-width: 2px; padding: 8px 15px;">
-                [ LAUNCH PORTRAIT ASSISTANT ]
-            </a>
-        </div>
-    </div>
 
-    <!-- 專案 3: Notion Integrator -->
-    <div class="container" style="border: 2px solid #0F0; background: rgba(0, 15, 0, 0.9); margin: 0; padding: 25px; display: flex; flex-direction: column; justify-content: space-between; border-radius: 8px;">
-        <div>
-            <h3 style="border-bottom: 2px solid #0F0; padding-bottom: 10px; margin-top: 0; color: #0F0;">
-                📅 Notion Logs Summarizer
-            </h3>
-            
-            <p style="line-height: 1.6; opacity: 0.9; font-size: 0.95em;">
-                自動化整理與歸檔 Notion 每日日誌的智慧助理。
-                透過 <strong>Notion API</strong> 定期拉取日誌頁面，利用地端 <strong>Llama.cpp & Qwen LLM</strong> 完成時間段週報/月報、以及<strong>主題式報告 (Thematic Report)</strong>，並支援 LINE Notify 提醒與本機 SQLite 歷史追蹤庫。
-            </p>
-            
-            <br>
-            <div style="border-top: 1px dotted #0F0; padding-top: 15px; font-size: 0.88em;">
-                <strong>核心架構與技術棧：</strong>
-                <ul style="list-style: none; padding-left: 15px; margin-top: 8px;">
-                    <li>> Notion Developer API</li>
-                    <li>> Llama.cpp / Qwen GGUF Model</li>
-                    <li>> Streamlit Web UI Layout</li>
-                    <li>> LINE Notify & SMTP Notifier</li>
+        <!-- ══ 專案 2: Literature Integrator ═══════════════ -->
+        <div class="project-card fade-in-up delay-2">
+            <div>
+                <h3>📚 Literature Integrator</h3>
+                <p>
+                    智慧科學文獻整合平台，自動蒐集
+                    <strong>arXiv、bioRxiv、medRxiv</strong> 最新論文，
+                    透過 <strong>Qwen2.5 / Gemini 2.0 Flash</strong> 進行
+                    六維度 AI 深度分析（摘要、假設、動機、SOTA、程式碼與資料集可用性），
+                    每日自動推送至 <strong>Notion、Email 及 LINE</strong>。
+                </p>
+                <ul class="tech-list">
+                    <li>arXiv / bioRxiv / medRxiv Multi-Crawler</li>
+                    <li>Qwen2.5 (Ollama Local) & Gemini 2.0 Flash</li>
+                    <li>SQLite + SQLAlchemy ORM</li>
+                    <li>Notion API + Email SMTP + LINE Messaging</li>
                 </ul>
+                <div>
+                    <span class="tag">LLM</span><span class="tag">Crawler</span>
+                    <span class="tag">Gemini</span><span class="tag">Notion</span>
+                </div>
+            </div>
+            <div style="margin-top: 20px;">
+                <a href="/literature-integrator" class="btn btn-primary" style="display: block; text-align: center;">[ Launch Literature Integrator ]</a>
             </div>
         </div>
-        
-        <div style="margin-top: 30px; text-align: center;">
-            <a href="/notion-integrator" class="btn" style="display: inline-block; width: 90%; font-weight: bold; border-width: 2px; padding: 8px 15px;">
-                [ LAUNCH NOTION INTEGRATOR ]
-            </a>
-        </div>
-    </div>
 
-    <!-- 專案 4: Literature Integrator -->
-    <div class="container" style="border: 2px solid #0F0; background: rgba(0, 15, 0, 0.9); margin: 0; padding: 25px; display: flex; flex-direction: column; justify-content: space-between; border-radius: 8px;">
-        <div>
-            <h3 style="border-bottom: 2px solid #0F0; padding-bottom: 10px; margin-top: 0; color: #0F0;">
-                📚 Literature Integrator
-            </h3>
-            
-            <p style="line-height: 1.6; opacity: 0.9; font-size: 0.95em;">
-                智慧科學文獻整合平台，自動蒐集 <strong>arXiv、bioRxiv、medRxiv</strong> 最新論文，透過 <strong>Qwen2.5 / Gemini 2.0 Flash</strong> 進行六維度 AI 深度分析（摘要、假設、動機、SOTA 比較、程式碼與資料集可用性），並每日自動推送至 <strong>Notion 日誌、Email 及 LINE</strong>。
-            </p>
-            
-            <br>
-            <div style="border-top: 1px dotted #0F0; padding-top: 15px; font-size: 0.88em;">
-                <strong>核心架構與技術棧：</strong>
-                <ul style="list-style: none; padding-left: 15px; margin-top: 8px;">
-                    <li>> arXiv / bioRxiv / medRxiv Multi-Crawler</li>
-                    <li>> Qwen2.5 (Ollama Local) & Gemini 2.0 Flash</li>
-                    <li>> SQLite + SQLAlchemy ORM</li>
-                    <li>> Notion API + Email SMTP + LINE Messaging</li>
+        <!-- ══ 專案 3: Portrait ════════════════════════════ -->
+        <div class="project-card fade-in-up delay-3">
+            <div>
+                <h3>💬 Portrait: Persona Analyzer</h3>
+                <p>
+                    注重隱私的<strong>地端 LINE 聊天記錄人物誌分析器</strong>。
+                    利用 <strong>LangChain</strong> 與本地端 <strong>Ollama LLM</strong>
+                    提取發言者性格、目標、喜好、經歷等八大核心維度，
+                    結合 <strong>ChromaDB 向量記憶庫</strong>，
+                    支援具有長期記憶的對話 Q&A 助理與文字雲生成。
+                </p>
+                <ul class="tech-list">
+                    <li>LangChain & ChromaDB (Local RAG)</li>
+                    <li>Ollama Llama / Qwen LLM Engine</li>
+                    <li>Streamlit User Interface</li>
+                    <li>Wordcloud Visualization</li>
                 </ul>
+                <div>
+                    <span class="tag">LangChain</span><span class="tag">ChromaDB</span>
+                    <span class="tag">RAG</span><span class="tag">Ollama</span>
+                </div>
+            </div>
+            <div style="margin-top: 20px;">
+                <a href="/portrait" class="btn btn-primary" style="display: block; text-align: center;">[ Launch Portrait ]</a>
             </div>
         </div>
-        
-        <div style="margin-top: 30px; text-align: center;">
-            <a href="/literature-integrator" class="btn" style="display: inline-block; width: 90%; font-weight: bold; border-width: 2px; padding: 8px 15px;">
-                [ LAUNCH LITERATURE INTEGRATOR ]
-            </a>
+
+        <!-- ══ 專案 4: Notion Integrator ══════════════════ -->
+        <div class="project-card fade-in-up delay-4">
+            <div>
+                <h3>📅 Notion Logs Summarizer</h3>
+                <p>
+                    自動化整理 Notion 每日日誌的智慧助理。
+                    透過 <strong>Notion API</strong> 定期拉取日誌頁面，
+                    利用地端 <strong>Llama.cpp & Qwen LLM</strong>
+                    完成時間段週報/月報及<strong>主題式報告（Thematic Report）</strong>，
+                    並支援 LINE Notify 提醒與本機 SQLite 歷史追蹤庫。
+                </p>
+                <ul class="tech-list">
+                    <li>Notion Developer API</li>
+                    <li>Llama.cpp / Qwen GGUF Model</li>
+                    <li>Streamlit Web UI Layout</li>
+                    <li>LINE Notify & SMTP Notifier</li>
+                </ul>
+                <div>
+                    <span class="tag">Notion</span><span class="tag">Qwen</span>
+                    <span class="tag">Streamlit</span><span class="tag">LINE</span>
+                </div>
+            </div>
+            <div style="margin-top: 20px;">
+                <a href="/notion-integrator" class="btn btn-primary" style="display: block; text-align: center;">[ Launch Notion Integrator ]</a>
+            </div>
         </div>
+
+        <!-- ══ 專案 5: CAFA-6 Protein Function Prediction ═ -->
+        <div class="project-card fade-in-up delay-1">
+            <div>
+                <h3>🧪 CAFA-6 蛋白功能預測</h3>
+                <p>
+                    參與 Critical Assessment of protein Function Annotation (CAFA-6) 競賽，
+                    針對大規模蛋白質序列進行 GO 功能標籤預測。
+                    整合序列特徵、ESM embedding 與多標籤分類器，
+                    探索蛋白質功能預測的 SOTA 方法。
+                </p>
+                <ul class="tech-list">
+                    <li>ESM Protein Language Model</li>
+                    <li>Multi-label Classification</li>
+                    <li>GO Term Hierarchy Analysis</li>
+                    <li>XGBoost / Ensemble Learning</li>
+                </ul>
+                <div>
+                    <span class="tag">ESM</span><span class="tag">CAFA-6</span>
+                    <span class="tag">Kaggle</span><span class="tag">Bioinformatics</span>
+                </div>
+            </div>
+            <div style="margin-top: 20px;">
+                <a href="/blog" class="btn" style="display: block; text-align: center;">[ 查看研究筆記 ]</a>
+            </div>
+        </div>
+
+        <!-- ══ 專案 6: HLA Presentation Model (工作項目) ══ -->
+        <div class="project-card fade-in-up delay-2">
+            <div>
+                <h3>🎯 HLA Presentation Pipeline</h3>
+                <p>
+                    Acer 癌症疫苗研發核心項目。
+                    設計並維護腫瘤新抗原的 HLA binding affinity 與呈遞效率評估管道，
+                    支援多個 HLA 等位基因的平行預測，
+                    整合 NetMHCpan / MHCflurry 等工具並加入客製化評分模型。
+                </p>
+                <ul class="tech-list">
+                    <li>HLA Allele Typing & Binding Affinity</li>
+                    <li>NetMHCpan / MHCflurry Integration</li>
+                    <li>Neoantigen Prioritization Pipeline</li>
+                    <li>Clinical Data Stream Processing</li>
+                </ul>
+                <div>
+                    <span class="tag">HLA</span><span class="tag">Neoantigen</span>
+                    <span class="tag">Cancer Vaccine</span><span class="tag">Acer</span>
+                </div>
+            </div>
+            <div style="margin-top: 20px;">
+                <span class="tag" style="padding: 8px 16px; font-size: 0.8rem; opacity: 0.7;">
+                    🔒 Internal Project
+                </span>
+            </div>
+        </div>
+
     </div>
 
-</div>
+    <div style="text-align: center; margin-top: 36px; margin-bottom: 16px;">
+        <a href="/" class="btn">[ ← Return to Surface ]</a>
+    </div>
 
-<br><br>
-<div style="text-align: center; margin-top: 20px;">
-    <a href="/" class="btn">[ < Return to Root ]</a>
 </div>
 {% endblock %}

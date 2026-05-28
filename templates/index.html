@@ -1,20 +1,177 @@
 {% extends "base.html" %}
 
 {% block content %}
-<div style="text-align: center; margin-top: 50px;">
-    <h2 class="typing-effect">> Welcome to the Real World.</h2>
-    <p>這裡是存放我的研究筆記、Python 腳本與 API 實驗的地方。</p>
-
-    <br>
-
-    <h3>[ 最新狀態 ]</h3>
-    <ul style="list-style: none; padding: 0;">
-        <li>> 正在載入模組: Pandas, Flask... [OK]</li>
-        <li>> 連結資料庫... [OK]</li>
-        <li>> 準備分享 Mutect2 分析流程... [Pending]</li>
-    </ul>
-
-    <br>
-    <a href="/blog" class="btn">[ 進入 Blog 資料庫 ]</a>
+<!-- ══ Hero Section ══════════════════════════════════════ -->
+<div class="hero-section fade-in-up">
+    <h2 class="hero-title typing-effect">~ Diving into the Deep ~</h2>
+    <p class="hero-subtitle">
+        生物資訊 · 機器學習 · 計算醫學的探索基地<br>
+        每一行程式碼，都是潛入未知的一次呼吸
+    </p>
+    <div style="display: flex; gap: 16px; justify-content: center; flex-wrap: wrap; margin-top: 28px;">
+        <a href="/projects" class="btn btn-primary">[ 探索專案 ]</a>
+        <a href="/blog" class="btn">[ 研究筆記 ]</a>
+        <a href="/about" class="btn">[ About Me ]</a>
+    </div>
 </div>
+
+<div style="display: grid; grid-template-columns: 1fr 1fr; gap: 24px; margin-top: 20px;">
+
+    <!-- ══ 系統資訊 ══════════════════════════════════════ -->
+    <div class="ocean-panel fade-in-up delay-1">
+        <div class="panel-title">◈ 系統資訊 · Identity</div>
+
+        <div class="info-row">
+            <span class="info-label">Name</span>
+            <span class="info-value">Steven Su（蘇）</span>
+        </div>
+        <div class="info-row">
+            <span class="info-label">Role</span>
+            <span class="info-value">研究員 · NYCU 生物資訊</span>
+        </div>
+        <div class="info-row">
+            <span class="info-label">現職</span>
+            <span class="info-value">Acer — 癌症疫苗研發 · 生物資訊工程師</span>
+        </div>
+        <div class="info-row">
+            <span class="info-label">Location</span>
+            <span class="info-value">🇹🇼 Taiwan · Hsinchu</span>
+        </div>
+        <div class="info-row">
+            <span class="info-label">Focus</span>
+            <span class="info-value">HLA 呈遞預測 · GNN · RAG · 文獻 AI</span>
+        </div>
+        <div style="margin-top: 16px;">
+            <a href="https://github.com/steven556610" target="_blank" class="tag">GitHub</a>
+            <span class="tag">Python</span>
+            <span class="tag">Bioinformatics</span>
+            <span class="tag">ML</span>
+        </div>
+    </div>
+
+    <!-- ══ 最新狀態 ══════════════════════════════════════ -->
+    <div class="ocean-panel fade-in-up delay-2">
+        <div class="panel-title">◈ 最新狀態 · Status Feed</div>
+        <ul class="status-list">
+            <li>
+                <span class="status-dot online"></span>
+                <span>HLA Presentation Model 特徵優化</span>
+                <span class="status-ok" style="margin-left: auto; font-size: 0.78rem;">[Active]</span>
+            </li>
+            <li>
+                <span class="status-dot done"></span>
+                <span>Literature Integrator 多源爬蟲上線</span>
+                <span class="status-done" style="margin-left: auto; font-size: 0.78rem;">[Done]</span>
+            </li>
+            <li>
+                <span class="status-dot done"></span>
+                <span>BioRec GNN 共識預測引擎 v2</span>
+                <span class="status-done" style="margin-left: auto; font-size: 0.78rem;">[Done]</span>
+            </li>
+            <li>
+                <span class="status-dot done"></span>
+                <span>Portrait · LINE 人物誌分析器</span>
+                <span class="status-done" style="margin-left: auto; font-size: 0.78rem;">[Done]</span>
+            </li>
+            <li>
+                <span class="status-dot online"></span>
+                <span>Ocean Hub 全站海洋主題改版</span>
+                <span class="status-ok" style="margin-left: auto; font-size: 0.78rem;">[Active]</span>
+            </li>
+            <li>
+                <span class="status-dot pending"></span>
+                <span>HackMD 定時同步 Blog 整合</span>
+                <span class="status-active" style="margin-left: auto; font-size: 0.78rem;">[Planned]</span>
+            </li>
+        </ul>
+    </div>
+</div>
+
+<!-- ══ 研究領域 ══════════════════════════════════════════ -->
+<div class="ocean-panel fade-in-up delay-3" style="margin-top: 24px;">
+    <div class="panel-title">◈ 研究領域 · Research Domain</div>
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 20px;">
+
+        <div>
+            <h4 style="margin-bottom: 8px;">🧬 癌症免疫資訊學</h4>
+            <p style="font-size: 0.88rem; color: var(--text-secondary); line-height: 1.7;">
+                HLA 分型分析、新抗原呈遞效率預測（binding affinity / presentation score）、腫瘤突變負荷（TMB）評估。應用於 Acer 癌症疫苗研發臨床資料管線。
+            </p>
+            <div style="margin-top: 8px;">
+                <span class="tag">HLA</span><span class="tag">Neoantigen</span><span class="tag">TMB</span>
+            </div>
+        </div>
+
+        <div>
+            <h4 style="margin-bottom: 8px;">🕸️ 圖神經網路 · 藥物重定向</h4>
+            <p style="font-size: 0.88rem; color: var(--text-secondary); line-height: 1.7;">
+                基於 STRING PPI 網路與 DrugBank 靶點構建 GNN / SVD 多演算法共識推薦引擎，識別已知藥物的新適應症。
+            </p>
+            <div style="margin-top: 8px;">
+                <span class="tag">PyTorch</span><span class="tag">GCN</span><span class="tag">Node2Vec</span>
+            </div>
+        </div>
+
+        <div>
+            <h4 style="margin-bottom: 8px;">🤖 地端 AI 應用開發</h4>
+            <p style="font-size: 0.88rem; color: var(--text-secondary); line-height: 1.7;">
+                以 Ollama / Qwen / LangChain / ChromaDB 構建完全隱私的本地 RAG 系統，涵蓋文獻自動分析、日誌摘要、人物誌提取等應用。
+            </p>
+            <div style="margin-top: 8px;">
+                <span class="tag">LangChain</span><span class="tag">Ollama</span><span class="tag">RAG</span>
+            </div>
+        </div>
+
+        <div>
+            <h4 style="margin-bottom: 8px;">📊 競賽機器學習</h4>
+            <p style="font-size: 0.88rem; color: var(--text-secondary); line-height: 1.7;">
+                參與 CAFA-6 蛋白功能預測、Diabetes Prediction、生成式 AI 等 Kaggle / 競賽，強化 End-to-End ML Pipeline 能力。
+            </p>
+            <div style="margin-top: 8px;">
+                <span class="tag">CAFA-6</span><span class="tag">XGBoost</span><span class="tag">Ensemble</span>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+<!-- ══ 近期專案快覽 ══════════════════════════════════════ -->
+<div class="ocean-panel fade-in-up delay-4" style="margin-top: 24px;">
+    <div class="panel-title">◈ 近期專案 · Recent Projects</div>
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 16px;">
+
+        <div style="padding: 16px; border: 1px solid var(--card-border); border-radius: 10px; transition: all 0.3s;">
+            <div style="font-size: 1.2rem; margin-bottom: 6px;">📚</div>
+            <h4 style="font-size: 0.95rem; margin-bottom: 6px;">Literature Integrator</h4>
+            <p style="font-size: 0.82rem; color: var(--text-secondary);">arXiv / bioRxiv AI 深度分析 + 每日推播</p>
+            <a href="/literature-integrator" class="btn" style="font-size: 0.72rem; padding: 5px 12px; margin-top: 10px; display: inline-block;">[ Launch ]</a>
+        </div>
+
+        <div style="padding: 16px; border: 1px solid var(--card-border); border-radius: 10px; transition: all 0.3s;">
+            <div style="font-size: 1.2rem; margin-bottom: 6px;">🧬</div>
+            <h4 style="font-size: 0.95rem; margin-bottom: 6px;">BioRec Drug Suite</h4>
+            <p style="font-size: 0.82rem; color: var(--text-secondary);">GNN + SVD 共識藥物重定向推薦引擎</p>
+            <a href="/biorec" class="btn" style="font-size: 0.72rem; padding: 5px 12px; margin-top: 10px; display: inline-block;">[ Launch ]</a>
+        </div>
+
+        <div style="padding: 16px; border: 1px solid var(--card-border); border-radius: 10px; transition: all 0.3s;">
+            <div style="font-size: 1.2rem; margin-bottom: 6px;">💬</div>
+            <h4 style="font-size: 0.95rem; margin-bottom: 6px;">Portrait Analyzer</h4>
+            <p style="font-size: 0.82rem; color: var(--text-secondary);">LINE 聊天記錄 × 本地 LLM 人物誌分析</p>
+            <a href="/portrait" class="btn" style="font-size: 0.72rem; padding: 5px 12px; margin-top: 10px; display: inline-block;">[ Launch ]</a>
+        </div>
+
+        <div style="padding: 16px; border: 1px solid var(--card-border); border-radius: 10px; transition: all 0.3s;">
+            <div style="font-size: 1.2rem; margin-bottom: 6px;">📅</div>
+            <h4 style="font-size: 0.95rem; margin-bottom: 6px;">Notion Summarizer</h4>
+            <p style="font-size: 0.82rem; color: var(--text-secondary);">Notion 日誌 × 地端 LLM 週報月報自動生成</p>
+            <a href="/notion-integrator" class="btn" style="font-size: 0.72rem; padding: 5px 12px; margin-top: 10px; display: inline-block;">[ Launch ]</a>
+        </div>
+
+    </div>
+    <div style="text-align: center; margin-top: 20px;">
+        <a href="/projects" class="btn btn-primary">[ 查看全部專案 → ]</a>
+    </div>
+</div>
+
 {% endblock %}

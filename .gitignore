@@ -1,15 +1,72 @@
-# 忽略 Python 編譯檔
+# ============================================================
+# Steven's Ocean Hub — .gitignore
+# ============================================================
+
+# ── 機密設定 (絕對不要上傳！) ──────────────────────────────
+.env
+*.env
+*.key
+*.secret
+secrets.json
+credentials.json
+
+# ── Python ────────────────────────────────────────────────
 __pycache__/
 *.py[cod]
+*$py.class
+*.pyc
+*.pyo
+*.pyd
+.Python
+pip-log.txt
+pip-delete-this-directory.txt
 
-# 忽略虛擬環境 (如果你有建 venv)
+# ── 虛擬環境 ──────────────────────────────────────────────
 venv/
 env/
+.venv/
+.env/
+ENV/
+env.bak/
+venv.bak/
 
-# 忽略 SQLite 資料庫 (通常不建議將資料庫本體上傳，除非是空的範例)
+# ── 資料庫 ────────────────────────────────────────────────
 *.db
+*.sqlite
+*.sqlite3
+instance/database.db
+instance/
 
-# 忽略環境變數設定檔 (如果有放 API Key)
-.env
+# ── Flask / Werkzeug ──────────────────────────────────────
+.flaskenv
+flask_session/
 
-.pycinstance/database.db
+# ── HackMD 同步快取 ───────────────────────────────────────
+hackmd_cache/
+*.hackmd_cache.json
+
+# ── IDE / Editor ──────────────────────────────────────────
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+Thumbs.db
+
+# ── Log 檔 ────────────────────────────────────────────────
+*.log
+logs/
+
+# ── 測試 ──────────────────────────────────────────────────
+.pytest_cache/
+.coverage
+htmlcov/
+
+# ── Build 產物 ────────────────────────────────────────────
+dist/
+build/
+*.egg-info/
+
+# ── 上傳的使用者檔案 ──────────────────────────────────────
+uploads/

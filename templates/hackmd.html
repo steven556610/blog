@@ -1,0 +1,158 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div style="max-width: 960px; margin: 0 auto;">
+
+    <!-- ══ 頁首 ══════════════════════════════════════════ -->
+    <div class="fade-in-up" style="margin-bottom: 8px;">
+        <h2>HackMD Notes 📝</h2>
+        <p style="color: var(--text-secondary);">從 HackMD 同步的公開研究筆記與文章</p>
+    </div>
+
+    <!-- ══ 狀態列 ═══════════════════════════════════════ -->
+    <div class="ocean-panel fade-in-up delay-1" style="padding: 16px 24px; margin-bottom: 24px;">
+        <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px;">
+            <div style="display: flex; align-items: center; gap: 20px; font-family: 'Space Mono', monospace; font-size: 0.8rem;">
+                <span>
+                    <span class="status-dot online" style="margin-right: 6px;"></span>
+                    <span style="color: var(--text-secondary);">共</span>
+                    <strong style="color: var(--biolum); margin: 0 4px;">{{ notes | length }}</strong>
+                    <span style="color: var(--text-secondary);">篇公開筆記</span>
+                </span>
+                {% if last_synced %}
+                <span style="color: var(--text-dim);">
+                    上次同步：{{ last_synced }}
+                </span>
+                {% endif %}
+            </div>
+            <div style="display: flex; gap: 10px; align-items: center;">
+                {% if tag_filter %}
+                <span class="tag" style="background: rgba(0,245,212,0.15);">
+                    # {{ tag_filter }}
+                    <a href="/hackmd" style="color: var(--text-dim); margin-left: 6px; border: none; font-size: 0.9em;">✕</a>
+                </span>
+                {% endif %}
+                <form method="POST" action="/api/hackmd/sync" style="display:inline;">
+                    <button type="submit" class="btn" style="font-size: 0.75rem; padding: 6px 14px; cursor: pointer; background: none;">
+                        [ ↻ 立即同步 ]
+                    </button>
+                </form>
+                <a href="https://hackmd.io" target="_blank" class="btn" style="font-size: 0.75rem; padding: 6px 14px;">
+                    [ HackMD ↗ ]
+                </a>
+            </div>
+        </div>
+
+        <!-- 標籤篩選列 -->
+        {% if all_tags %}
+        <div style="margin-top: 14px; padding-top: 14px; border-top: 1px solid var(--card-border);">
+            <span style="font-size: 0.78rem; color: var(--text-dim); font-family: 'Space Mono', monospace; margin-right: 10px;">FILTER:</span>
+            <a href="/hackmd" class="tag {% if not tag_filter %}" style="background: rgba(0,245,212,0.15); border-color: var(--biolum);">All{% else %}">All{% endif %}</a>
+            {% for tag in all_tags %}
+            <a href="/hackmd?tag={{ tag }}" class="tag {% if tag_filter == tag %}active{% endif %}"
+               style="{% if tag_filter == tag %}background: rgba(0,245,212,0.15); border-color: var(--biolum);{% endif %} text-decoration: none; border-bottom: none;">
+                # {{ tag }}
+            </a>
+            {% endfor %}
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- ══ 筆記列表 ══════════════════════════════════════ -->
+    {% if notes %}
+    <div style="display: flex; flex-direction: column; gap: 16px;">
+        {% for note in notes %}
+        <article class="ocean-panel fade-in-up" style="padding: 22px 28px; cursor: pointer; transition: all 0.3s ease;"
+                 onclick="window.location='/hackmd/{{ note.hackmd_id }}'">
+            <div style="display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; flex-wrap: wrap;">
+
+                <!-- 標題 & 摘要 -->
+                <div style="flex: 1; min-width: 0;">
+                    <h3 style="font-size: 1.1rem; margin-bottom: 8px; margin-top: 0;">
+                        <a href="/hackmd/{{ note.hackmd_id }}"
+                           style="color: var(--ocean-foam); border: none; text-decoration: none;"
+                           onclick="event.stopPropagation();">
+                            {{ note.title }}
+                        </a>
+                    </h3>
+
+                    <!-- 標籤 -->
+                    {% if note.tags_list() %}
+                    <div style="margin-bottom: 10px;">
+                        {% for tag in note.tags_list() %}
+                        <a href="/hackmd?tag={{ tag }}" class="tag"
+                           style="text-decoration: none; border-bottom: none; font-size: 0.72rem;"
+                           onclick="event.stopPropagation();"># {{ tag }}</a>
+                        {% endfor %}
+                    </div>
+                    {% endif %}
+
+                    <!-- 內容預覽 -->
+                    {% if note.content %}
+                    <p style="font-size: 0.87rem; color: var(--text-secondary); line-height: 1.65; margin: 0;
+                               display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;">
+                        {{ note.content | replace('#', '') | replace('*', '') | replace('`', '') | truncate(160) }}
+                    </p>
+                    {% endif %}
+                </div>
+
+                <!-- 右側 meta -->
+                <div style="text-align: right; flex-shrink: 0; font-family: 'Space Mono', monospace; font-size: 0.75rem; color: var(--text-dim);">
+                    {% if note.hackmd_updated_at %}
+                    <div style="margin-bottom: 6px;">
+                        {{ note.hackmd_updated_at.strftime('%Y-%m-%d') }}
+                    </div>
+                    {% endif %}
+                    {% if note.publish_link %}
+                    <div>
+                        <a href="{{ note.publish_link }}" target="_blank"
+                           style="color: var(--biolum); font-size: 0.72rem; border: none;"
+                           onclick="event.stopPropagation();">HackMD ↗</a>
+                    </div>
+                    {% endif %}
+                    <div style="margin-top: 8px;">
+                        <span style="color: var(--biolum); font-size: 0.8rem;">→</span>
+                    </div>
+                </div>
+            </div>
+        </article>
+        {% endfor %}
+    </div>
+
+    {% else %}
+    <!-- 空狀態 -->
+    <div class="ocean-panel" style="text-align: center; padding: 60px 40px;">
+        <div style="font-size: 3rem; margin-bottom: 16px; opacity: 0.5;">📝</div>
+        <h3 style="color: var(--text-secondary); margin-bottom: 12px;">尚無同步筆記</h3>
+        {% if tag_filter %}
+        <p style="color: var(--text-dim); font-size: 0.9rem;">標籤 <strong>#{{ tag_filter }}</strong> 下沒有筆記</p>
+        <a href="/hackmd" class="btn" style="margin-top: 16px; display: inline-block;">[ 查看全部 ]</a>
+        {% else %}
+        <p style="color: var(--text-dim); font-size: 0.9rem; margin-bottom: 20px;">
+            點擊「立即同步」從 HackMD 拉取你的公開筆記
+        </p>
+        <form method="POST" action="/api/hackmd/sync" style="display:inline;">
+            <button type="submit" class="btn btn-primary" style="cursor: pointer; background: rgba(0,245,212,0.1);">
+                [ ↻ 立即同步 ]
+            </button>
+        </form>
+        {% endif %}
+    </div>
+    {% endif %}
+
+    <!-- 返回按鈕 -->
+    <div style="text-align: center; margin-top: 36px; margin-bottom: 16px;">
+        <a href="/" class="btn">[ ← Return to Surface ]</a>
+    </div>
+</div>
+
+<style>
+    article.ocean-panel:hover {
+        border-color: rgba(0, 245, 212, 0.4);
+        box-shadow: 0 8px 30px rgba(0, 245, 212, 0.1);
+        transform: translateY(-2px);
+    }
+    article.ocean-panel::before { opacity: 0; }
+    article.ocean-panel:hover::before { opacity: 0.6; }
+</style>
+{% endblock %}
