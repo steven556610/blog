@@ -23,38 +23,7 @@ app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 db.init_app(app)
 
-# ====================================================================
-# APScheduler — 每小時自動同步 HackMD 公開筆記
-# ====================================================================
-try:
-    from apscheduler.schedulers.background import BackgroundScheduler
-    from apscheduler.triggers.interval import IntervalTrigger
-    import atexit
-
-    def _scheduled_hackmd_sync():
-        """排程呼叫：在 app context 內執行 HackMD 同步"""
-        try:
-            from hackmd_sync import sync_notes
-            synced, skipped, errors = sync_notes(app)
-            logger.info(f"[Scheduler] HackMD 同步完成 — 更新:{synced} 跳過:{skipped} 錯誤:{errors}")
-        except Exception as e:
-            logger.error(f"[Scheduler] HackMD 同步失敗: {e}")
-
-    scheduler = BackgroundScheduler(daemon=True)
-    scheduler.add_job(
-        func=_scheduled_hackmd_sync,
-        trigger=IntervalTrigger(hours=1),
-        id='hackmd_hourly_sync',
-        name='HackMD Hourly Sync',
-        replace_existing=True,
-        max_instances=1
-    )
-    scheduler.start()
-    atexit.register(lambda: scheduler.shutdown(wait=False))
-    logger.info("[Scheduler] APScheduler 啟動，每小時同步 HackMD")
-except ImportError:
-    logger.warning("[Scheduler] APScheduler 未安裝，跳過排程（pip install apscheduler）")
-    scheduler = None
+# APScheduler 已移除：改用本機產生 JSON 的方式，並透過 Git 同步
 
 # Load BioRec pre-processed demo datasets
 try:
@@ -777,37 +746,75 @@ def get_code_example():
     return jsonify(sample_data)
 
 # ====================================================================
-# HackMD 頁面路由
 # ====================================================================
+# HackMD 頁面路由 (JSON 靜態讀取版)
+# ====================================================================
+
+def get_hackmd_data():
+    json_path = os.path.join(os.path.dirname(__file__), 'hackmd_notes.json')
+    if os.path.exists(json_path):
+        try:
+            with open(json_path, 'r', encoding='utf-8') as f:
+                return json.load(f)
+        except Exception as e:
+            logger.error(f"讀取 hackmd_notes.json 錯誤: {e}")
+            return {"notes": [], "last_synced": None}
+    return {"notes": [], "last_synced": None}
 
 @app.route('/hackmd')
 def hackmd_list():
     """HackMD 公開筆記列表頁"""
     tag_filter = request.args.get('tag', '').strip()
+    data = get_hackmd_data()
+    all_notes = data.get("notes", [])
+    last_synced_iso = data.get("last_synced")
+    
+    # 解析同步時間
+    last_synced = None
+    if last_synced_iso:
+        try:
+            dt = datetime.fromisoformat(last_synced_iso)
+            last_synced = dt.strftime('%Y-%m-%d %H:%M')
+        except:
+            pass
 
-    query = HackMDNote.query.order_by(HackMDNote.hackmd_updated_at.desc())
+    # 篩選標籤
+    notes = []
     if tag_filter:
-        # 用 LIKE 搜尋 JSON tags 欄位
-        query = query.filter(HackMDNote.tags.like(f'%"{tag_filter}"%'))
-    notes = query.all()
+        for n in all_notes:
+            if tag_filter in n.get("tags", []):
+                notes.append(n)
+    else:
+        notes = all_notes
 
     # 收集所有標籤（去重）
     all_tags = []
     seen = set()
-    all_notes_for_tags = HackMDNote.query.all()
-    for n in all_notes_for_tags:
-        for t in n.tags_list():
+    for n in all_notes:
+        for t in n.get("tags", []):
             if t not in seen:
                 seen.add(t)
                 all_tags.append(t)
 
-    # 最後同步時間
-    latest = HackMDNote.query.order_by(HackMDNote.synced_at.desc()).first()
-    last_synced = latest.synced_at.strftime('%Y-%m-%d %H:%M') if latest else None
+    # 讓模板能以點運算子取值，我們把 dict 轉成簡單的物件
+    class NoteObj:
+        def __init__(self, d):
+            self.hackmd_id = d.get("hackmd_id")
+            self.short_id = d.get("short_id")
+            self.title = d.get("title")
+            self.tags = json.dumps(d.get("tags", []))
+            self.content = d.get("content")
+            self.publish_link = d.get("publish_link")
+            self.hackmd_updated_at = datetime.fromisoformat(d.get("hackmd_updated_at")) if d.get("hackmd_updated_at") else None
+            
+        def tags_list(self):
+            return json.loads(self.tags)
+            
+    note_objs = [NoteObj(n) for n in notes]
 
     return render_template(
         'hackmd.html',
-        notes=notes,
+        notes=note_objs,
         all_tags=sorted(all_tags),
         tag_filter=tag_filter,
         last_synced=last_synced,
@@ -818,9 +825,40 @@ def hackmd_list():
 @app.route('/hackmd/<note_id>')
 def hackmd_note(note_id):
     """單篇 HackMD 筆記閱讀頁"""
-    note = HackMDNote.query.filter(
-        (HackMDNote.hackmd_id == note_id) | (HackMDNote.short_id == note_id)
-    ).first_or_404()
+    data = get_hackmd_data()
+    all_notes = data.get("notes", [])
+    
+    # 尋找筆記 (符合 hackmd_id 或 short_id)
+    target_note_dict = None
+    for n in all_notes:
+        if n.get("hackmd_id") == note_id or n.get("short_id") == note_id:
+            target_note_dict = n
+            break
+            
+    if not target_note_dict:
+        return "筆記未找到或未同步", 404
+        
+    class NoteObj:
+        def __init__(self, d):
+            self.hackmd_id = d.get("hackmd_id")
+            self.short_id = d.get("short_id")
+            self.title = d.get("title")
+            self.tags = json.dumps(d.get("tags", []))
+            self.content = d.get("content")
+            self.publish_link = d.get("publish_link")
+            
+            created = d.get("hackmd_created_at")
+            updated = d.get("hackmd_updated_at")
+            synced = d.get("synced_at")
+            
+            self.hackmd_created_at = datetime.fromisoformat(created) if created else None
+            self.hackmd_updated_at = datetime.fromisoformat(updated) if updated else None
+            self.synced_at = datetime.fromisoformat(synced) if synced else None
+            
+        def tags_list(self):
+            return json.loads(self.tags)
+            
+    note = NoteObj(target_note_dict)
 
     content_html = ''
     if note.content:
@@ -837,51 +875,6 @@ def hackmd_note(note_id):
     )
 
 
-@app.route('/api/hackmd/sync', methods=['POST'])
-def api_hackmd_sync():
-    """手動觸發 HackMD 同步（支援網頁表單 POST 和 API JSON 回應）"""
-    try:
-        from hackmd_sync import sync_notes
-        synced, skipped, errors = sync_notes(app)
-        msg = f'同步完成：新增/更新 {synced} 篇，跳過 {skipped} 篇，錯誤 {errors} 篇'
-        logger.info(f'[API] 手動 HackMD 同步 — {msg}')
-    except Exception as e:
-        logger.error(f'[API] HackMD 同步失敗: {e}')
-        synced, skipped, errors = 0, 0, 1
-        msg = f'同步失敗：{e}'
-
-    # 判斷是否為 AJAX 請求
-    if request.headers.get('Content-Type') == 'application/json' or \
-       request.headers.get('Accept') == 'application/json':
-        return jsonify({'status': 'ok' if errors == 0 else 'error',
-                        'synced': synced, 'skipped': skipped, 'errors': errors, 'message': msg})
-    # 表單 POST → 重導向回列表頁
-    return redirect(url_for('hackmd_list'))
-
-
-@app.route('/api/hackmd/status', methods=['GET'])
-def api_hackmd_status():
-    """查詢 HackMD 同步狀態"""
-    total = HackMDNote.query.count()
-    latest = HackMDNote.query.order_by(HackMDNote.synced_at.desc()).first()
-    return jsonify({
-        'total_notes': total,
-        'last_synced': latest.synced_at.isoformat() if latest else None,
-        'scheduler_running': scheduler is not None and scheduler.running if scheduler else False
-    })
-
-
 if __name__ == '__main__':
     is_debug = os.environ.get('FLASK_DEBUG') == '1'
-    # 啟動時執行一次初始同步（背景執行，不阻塞啟動）
-    import threading
-    def _initial_sync():
-        import time
-        time.sleep(3)  # 等待 Flask 完全啟動
-        try:
-            from hackmd_sync import sync_notes
-            sync_notes(app)
-        except Exception as e:
-            logger.warning(f'初始 HackMD 同步失敗: {e}')
-    threading.Thread(target=_initial_sync, daemon=True).start()
     app.run(debug=is_debug)

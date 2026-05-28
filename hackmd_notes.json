@@ -1,0 +1,93 @@
+{
+  "last_synced": "2026-05-28T13:42:12.114124",
+  "total_notes": 5,
+  "notes": [
+    {
+      "hackmd_id": "pKWoUB_IS5-SJJMJvIcprQ",
+      "short_id": "S1dbhhIaxe",
+      "title": "Optitype",
+      "tags": [
+        "HLA",
+        "typing"
+      ],
+      "content": "# Optitype\n[literature](https://academic.oup.com/bioinformatics/article/30/23/3310/206910)\n[github](https://github.com/FRED-2/OptiType)\n[deepwiki](https://deepwiki.com/FRED-2/OptiType)\n![image](https://hackmd.io/_uploads/Syk3qaLTel.png)\n\n## usage\n### docker (推薦)\n可以使用docker，就可以不用建立環境，只要根據RNA input 放上-r 或是 DNA input放上-d。\n\n```\ndocker run -v /path/to/data/folder:/data/ -t fred2/optitype -i input1 [input2] (-r|-d) -o /data/\n```\n\n### clone from github code\n要下載許多東西，還有要製作出相應的conda env。並且還有python版本問題，目前確認下來，程式碼的版本是3.6，而不是2.7。\n假設都搞定了? 就可以來使用。\n使用docker 其實就是會見好環境，然後來跑OptiTypePipeline.py的程式碼。在跑程式碼的過程，裡面會去跑razerS3。\n\n## razerS3 in Optitype (input: FastQ, output: BAM)\nrazerS3的功用就是去進行比對(alignment)。拿fastq檔去進行比對。以 [VENUS](https://www.mdpi.com/2076-393X/9/8/880) 的文獻來說，就是用tumor sample 的FastQ檔去進行align，與hla的序列進行align，在data的資料夾中，就有存放dna和rna分別會用到的fasta檔。最後產生的結果，會是一個bam檔。\n![image](https://hackmd.io/_uploads/SyTpE6Upeg.png)\n\n\n## Analysis after alignment\n產生出來的bam file，會經歷一系列的分析(針對比對到的內容，進行整合，如下圖)。並且bam檔會被刪除，只留下最後的tsv檔還有比對結果的pdf檔。\n![image](https://hackmd.io/_uploads/rkAswpUael.png)\n\n## Debug\n![image](https://hackmd.io/_uploads/SJMhEpIaxl.png)\n使用<mark>docker 指令</mark>，進行[VENUS](https://www.mdpi.com/2076-393X/9/8/880)的分析時，會遇到上圖的error。\n這一個error 主要在於bam檔，沒有比對到東西，所以產生了一個比對值是零的物件。在往後的分析中，不能比對值是零，因此出現了Error。\n> 在這一個問題的解決上，有使用docker 覆現結果，然後才開始建立環境，然後一一確認問題。\n> >發現到說，其實產生的bam檔，只有一個bam檔的大小有問題<mark>(主要是R1.fastq 進RazerS3後產生的)</mark>，另一個bam檔的大小並沒有問題，是有比對到東西。\n![image](https://hackmd.io/_uploads/Hy9lcpLaee.png)\n\n> >>而且還針對RazerS3 調整了不同的參數，結果都不會相差太多，因此沿用原來程式碼的設定。\n\n單獨讀取，使用R2.fastq進入RazerS3 比對後的bam檔，就可以順利去跑後續的分析流程。並且可以得到與VENUS文獻一致的allele type結果。\n![image](https://hackmd.io/_uploads/r1RAFaL6gx.png)\n\n\n## Future Work\n* 要如何確認不是 SRR file的問題。\n* 要如何檢查Fastq 檔案\n> use samtools\n* 要如何讀取bam 檔\n> 這一次的bam 檔沒有辦法用IGV 檢查，因為沒有bai的產生。\n* 要如何確認過程有哪個環節出現錯誤\n* 要如何調整NGS pipeline。",
+      "permalink": null,
+      "publish_link": "https://hackmd.io/@steven556610/S1dbhhIaxe",
+      "read_permission": "guest",
+      "write_permission": "owner",
+      "hackmd_created_at": "2025-10-10T17:01:52.466000",
+      "hackmd_updated_at": "2025-10-10T18:04:23.920000",
+      "synced_at": "2026-05-28T13:42:10.019887"
+    },
+    {
+      "hackmd_id": "QTtzXXu1SbeJl3gQKk_jWg",
+      "short_id": "Hy1ThRKoex",
+      "title": "NGS pipeline and data analysis - session 7",
+      "tags": [
+        "NGS",
+        "data analysis"
+      ],
+      "content": "# NGS pipeline and data analysis - session 7\n## NGS data\n> 不同檔案間有什麼差別，怎麼去解釋檔案內容，檔案內容是怎麼得到的，以及我們該要如何去解釋\n> NGS的資料出現是因為人體的資料龐大，透過規範新的資料格式比較適合生物資訊的分析工具。\n\n::: spoiler Basic Notations\n* Fragment: 被定序的內容\n* Read: 一個片段的讀數，可以是Mate I 或是 Mate II\n* Mate I: 序列從5' 端的定序結果。\n* Mate II: 序列從3' 端的定序結果。\n* sequencing depth (定序深度)：在想要測定的區塊上，所有的序列、讀數、鹼基呈現。\n* sequencing coverage：\ncoverage(c)的定義通常為 LN/G，L定序到的長度，N為定序到的數量，G為被定序基因組的長度。\n    1. <mark>one locus</mark> : # of baseds mapping to the locus/size of locus.\n    2. <mark>One position </mark>: # of reads overlapping with on position\n    3. <mark>Whole genome</mark>: # of sequenced bases/ size of genome\n\n|sequencing method|recommended coverage|\n|:----:|:----:|\n|whole genome sequencing|~30X to 50X (human)|\n|whoe-exome sequencing|~100X|\n|RAN sequecing|~20~50 Mio.reads/sample|\n|ChIP-seq|~100X|\n\n:::\n\n::: spoiler Fasta\n* 以文字的方式儲存核苷酸序列或是氨基酸序列。\n* 表現方式是一行的描述與一行的序列。\n* 描述的前面要添加上 <mark>></mark> 符號\n* 通常fasta檔可以進行BLAST的搜尋\n<mark>BLAST 是什麼</mark>\n<mark>添加圖片</mark>\n:::\n\n::: spoiler FastQ\n* 定序完以後的資料，很多時候會有 R1 & R2 <mark>single end vs pair end</mark>\n* the first line starts with '@', followed by the label.\n* the second line represents the sequence of the read.\n* the third line starts with '+', serving as a separator.\n* the forth line contains the Q scores represented as ASCII characters. \n<mark>添加程式碼的處理圖片</mark>\n<mark>資料本身的圖片</mark>\n<mark>sratool 下載</mark>\n\n:::\n\n:::spoiler SAM (sequencing alignmet/map format)\n* tab-delimited text format\n* CIGAR(concise Idiosyncratic) \n<mark> </mark>\n\n:::\n\n:::spoiler bam\n\n:::\n\n:::spoiler gff/gtf\n\n:::\n\n:::spoiler bed\n\n:::\n\n\n:::spoiler bedgraph\n\n:::\n\n:::spoiler vcf\n\n:::\n\n:::spoiler sra\n\n:::\n",
+      "permalink": null,
+      "publish_link": "https://hackmd.io/@steven556610/Hy1ThRKoex",
+      "read_permission": "guest",
+      "write_permission": "owner",
+      "hackmd_created_at": "2025-09-18T19:25:42.818000",
+      "hackmd_updated_at": "2025-09-20T08:20:12.668000",
+      "synced_at": "2026-05-28T13:42:10.531009"
+    },
+    {
+      "hackmd_id": "VHTO5W3WRiOqTaqcxsGWAw",
+      "short_id": "Hkn75BIixx",
+      "title": "Next-generation sequencing and data analysis - session 1",
+      "tags": [
+        "NGS",
+        "data analysis"
+      ],
+      "content": "# Next-generation sequencing and data analysis - session 1\n\n## :book: what can be sequenced?\n\n:::spoiler DNA\n* Deoxyribonucleic acid (去氧核糖核酸)\n* **3 billion(3Gb)** base pair\n* A(Adenine)\n* C(Cytosine)\n* G(Guanine)\n* T(Thymine) \n* 4 different nucleotide(核苷酸) bound to deoxyribose(核酸)\n* 5' to 3'\n* doubled-stranded and oritentated antiparallel and 3-dimensionally organized as a helix\n:::\n    \n::: spoiler **alternative splicing**（或稱選擇性剪切）發生在真核細胞的**細胞核**中，它在DNA轉錄成初級mRNA前體(pre-mRNA)後，於mRNA前體加工成成熟mRNA的過程中進  行。透過在不同的外顯子（exon）間進行選擇性組合，細胞可以從同一個基因產生多種不同的成熟mRNA，進而轉譯出多種不同的蛋白質。\n* 場所: 這個過程發生在真核細胞的細胞核內。 \n* 前體： 基因轉錄後會形成一個包含內含子（intron, non-coding region）和外顯子（exon, coding regions）的初級mRNA前體。 \n* 剪接體： **RNA剪接體(splicingosome)** 會移除內含子。 \n* 選擇性: 選擇性剪接的關鍵在於，細胞可以選擇性地決定哪些外顯子被保留下來，哪些被移除。 \n* 結果： 透過組合不同的外顯子，一個基因可以製造出多種不同的成熟mRNA，這使得一個基因能夠產生多種不同的蛋白質，進而增加基因表現的多樣性。 \n* 為什麼重要？\n        1. 增加蛋白質多樣性： 選擇性剪接使人類等複雜動物的基因能夠以更高效的方式產生多樣化的蛋白質，這對於適應不同環境和生理狀況至關重要。 \n        2. 基因表現調控: 這是基因表現調控的一種重要方式。 \n        3. 疾病關聯: 剪接的異常變化可能導致人類遺傳疾病，異常的剪接變異也被認為與癌症的發展有關。\n\n\n* 外顯子（exon, coding region）約占人類基因組的 1% 至2%，但卻是大多數與疾病相關的突變的發生區域。 這個約占基因組極小部分的外顯子區域，卻包含約180,000個外顯子，是蛋白質編碼區域。\n![image](https://hackmd.io/_uploads/BkuvkaFixx.png)\n:::\n    \n::: spoiler RNA\n* DNA只存在於**細胞核**，遺傳物質離該細胞核的時候，也已經是經過選擇性剪切的mRNA\n* T to U (Uracil)\n* single strand\n\n|abreviation|name|function|\n|:----:|:----:|:----:|\n|mRNA|message RNA| coding for protin; **5%** of total RNA|\n|rRNA|ribosome RNA| central structure of ribosomes; catalyzes the formation of peptide bonds during protein synthe synthesis; ~80% of total RNA|\n|tRNA|transfer RNA|adapter between mRNA code and amino acids during proteins synthesis inside of ribosomes; ~15% of total RNA|\n|snRNA|small nuclear RNA| essential for RNA splicing|\n|snoRNA| small nucleolar RNA| guides for RNA modication and processing|\n|miRNA| Micro RNA| blocking the translation of distinct mRNAs|\n|siRNA|small interfering RNA|mediates degradation of distinct mRNAs and closing of gene loci leading to decreased gene expression|\n\n:::\n\n:::spoiler protein\n* 20 種不同的氨基酸\n* 64 種密碼子組合，61種是會變成氨基酸\n* 有START (ATG, methionine) 和STOP (UAA, UAG, UGA)\n<img src=\"https://hackmd.io/_uploads/Hkon8Ttoel.png\" alt=\"替代文本\" style=\"transform: rotate(90deg);\">\n\n:::\n人體內每個細胞大概都有包含3Gb的鹼基對，只有大概1.5%的基因座會被轉換成蛋白質．78% 的內含子會有其他功能，並且不同任務會有不同的細胞型態負責。\n\n::: spoiler 調控基因表現的機制：\n* Promoter: Is a genomic region, where the transcription machinery can bind to transcribe the following gene into an RNA molecule. Often, promoter regions can be associated with a high CG content.\n* Terminator: Is a genomic region, where the transcription process, and thus the gene transcript, ends.\n* Silencer: A genomic pattern that decreases the frequency of transcription and thus the expression of the regulated gene.\n* Enhancer: A genomic pattern that increases the frequency of transcription and thus the expression of the regulated gene\n* CpG islands: Genomic regions, which are enriched by Cs followed by a G (CpG, p stands for the phosphate in the DNA backbone). Cytosines in CpG islands can be methylated, which is an epigenetic regulatory mechanism of gene expression. In most cases DNA methylation is associated to the inactivation of the corresponding genes.\n* Epigenetics: Includes CpG island DNA methylation as mentioned above, but also histone modifications influencing transcriptional activity.\n* UTRs(untranslated regions):  The 5’UTR is located before the start codon and the 3’-UTR is the region between the stop codon and the poly-A-tail of the mRNA.\n:::\n\n## :pencil: NGS application\n* Expression analysis: The **RNA-Seq** application enables you to investigate expression variances of RNA structures of, e.g., different tissues. Moreover, RNA-Seq reads can be used to analyze differential exon usage, gene fusions or variants like SNPs, indels, mutations, etc.\n    > 得到TPM (transcript per million)\n* DNA-protein interaction: The ChIP-Seq (chromatin-immunoprecipitation) application focuses on investigating regulatory sequences of the DNA, like transcription factor binding sites or histone modifications (e.g., acetylation/methylation), which lead to differences in gene expression profiles. These regulatory sequences on the DNA are often localized in the so-called promoter, silencer, or enhancer regions and effect the transcription of nearby positioned genes.\n> 癌症病患通常會有***正常組織和癌症組織***的定序資料\n* Whole genome sequencing: Whole genome sequencing (WGS) is a complete readout of all the information that makes up all of your DNA. WGS gives you a deep insight into chromosomal alterations, indels, mutations, etc.\n* Whole-exome sequencing: The exome comprises just over 1% of the whole genome and is providing sequence information for protein-coding regions. This application is widely used to identify disease-causing mutations.\n* Targeted sequencing: Targeted sequencing allows to focus on specific genes or regions of interest and thus enables sequencing at much higher coverage levels. There are a variety of targeted sequencing panels available, however, it is also possible to generate custom probe sets. Targeted sequencing is mainly used in molecular diagnostics utilizing the so-called tumor panels (specific to the respective tumor entity).\n* De novo sequencing: This method refers to sequence a novel genome, if there is no reference genome available for alignment.\n\n## :notes: Summary \n* The flow of genetic information within a biological system can be shortly described by “DNA makes RNA and RNA makes Protein.” \n* The duplication of DNA during the cell cycle and thus cell division is known as DNA-replication.\n* The molecular process, in which a particular segment of DNA is converted into RNA, is called transcription.\n* The molecular process, in which the genetic code in mRNA is read to make a protein, is called translation. \n* Sequence information of the different “Omics” levels provide deep insights into molecular mechanisms of living organisms. \n* Each NGS application results in a different readout, depending on the specific research question.\n* The commonly used NGS applications are RNA-Seq, ChIP-Seq, methyl-Seq, WGS, WES, targeted sequencing, and de novo sequencing.",
+      "permalink": null,
+      "publish_link": "https://hackmd.io/@steven556610/Hkn75BIixx",
+      "read_permission": "guest",
+      "write_permission": "owner",
+      "hackmd_created_at": "2025-09-16T02:23:32.073000",
+      "hackmd_updated_at": "2025-09-19T05:09:17.272000",
+      "synced_at": "2026-05-28T13:42:10.993270"
+    },
+    {
+      "hackmd_id": "dTPoLAUFQZ2BJgGxwb1PTg",
+      "short_id": "rymfcxUus",
+      "title": "英華達工作內容",
+      "tags": [
+        "C#",
+        "python",
+        "camera"
+      ],
+      "content": "### 英華達 軟體設計工程師\n# C# 撰寫windows app 軟體的界面\n## 流程圖\n(圖片)\n### 功能\n* 操控相機\n* 調整焦距\n* 模糊測試\n* 警報提醒\n* 資料庫串接\n* 細胞計數\n\n",
+      "permalink": null,
+      "publish_link": "https://hackmd.io/@steven556610/rymfcxUus",
+      "read_permission": "guest",
+      "write_permission": "signed_in",
+      "hackmd_created_at": "2022-12-13T13:11:38.711000",
+      "hackmd_updated_at": "2025-07-05T06:54:31.474000",
+      "synced_at": "2026-05-28T13:42:11.580287"
+    },
+    {
+      "hackmd_id": "UTL4PRARRcmYYS538AAhSQ",
+      "short_id": "S1Xnvvc09",
+      "title": "Master Thesis",
+      "tags": [
+        "python",
+        "recommandation system",
+        "network embedding"
+      ],
+      "content": "# Master Thesis\nExploiting network embedding in pharmacogenomics to study drug-disease associations\n## Workflow![](https://i.imgur.com/kyKt7KB.png)\n## Material\n### network\nSTRING PPI network version 11 `https://string-db.org` \\\ntransfer node name by mygene`https://docs.mygene.info/en/latest/`\n\n### pathway database\n#### NCI & KEGG\n```\nhttps://www.kegg.jp\nhttps://www.ncbi.nlm.nih.gov/pmc/articles/PMC2686461/\nhttps://maayanlab.cloud/Enrichr/#libraries\n```\n#### REACTOME\n```\nhttps://reactome.org\n```\n#### MSigDB\n```\nhttp://www.gsea-msigdb.org/gsea/msigdb/index.jsp\n```\n### disease gene set\n3 disease gene set\nfrom \n`https://www.sciencedirect.com/science/article/pii/S2666389920301185`\n```\nhttps://maayanlab.cloud/covid19/\n```\nCRISPR-i`https://www.nature.com/articles/s41467-021-21213-4`\\\nCRISPR-a`https://pubmed.ncbi.nlm.nih.gov/34431042/`\\\ninteractome`https://pubmed.ncbi.nlm.nih.gov/33357464/`\n\nCRISPR-i related (27)\\\nCRISPR-a related (49)\\\ninteractome related (75)\n### drug gene set(DrugMatrix）\nfrom enrichr download\n```\nhttps://maayanlab.cloud/Enrichr/#libraries\n```\n7876 drug gene set include dose, time, and compound, experimented on rat.\n### material preprocessing\n\npackage: powerlaw, mygene, network,numpy pandas\n\nIn the Set2gaussian document (https://github.com/wangshenguiuc/set2gaussian), we need to send input which include network and pathway database information (gene set).\n\nIn the preprocessing step, we will introduce how we address and do what operat on the materials.\n\nIn the file named MSigDB_REACTOME_KEGG_C6HallMark_gmt_file_address_and_GeneSet_output, we address and make output file for pathway database gene-set.\n\nIn the file named STRINGv11_network_process and string physical network link preprocess, we address STRING PPI network.\n\nIn the STRINGv11_network_process, we present the network in different confidence score, and calculate power-law attribution for the PPI network.\n\nIn the string physical networ link preprocess, we transfer PPI's node from ENSEMBL protei ID to gene symbol to ensure following experiment conduct well.\n\n\n## Tools\n### Set2Gaussian\n```\nhttps://github.com/wangshenguiuc/set2gaussian\n```\n使用的時候，要使用linux的系統，並建立虛擬環境（python 2.7,tensorflow==1.14），然後到對應目錄下執行python Grep_...的.py檔，執行後，會跳出需要安裝的套件，諸如pandas, numpy,scikit-learn，還有些程式碼需要更改，像是split training-testing data set的程式碼，有因為改版而有不同。\n\n### Enrichr\n```\nhttps://maayanlab.cloud/Enrichr/\n```\n用於對比結果、驗證和取得基因集資料。\n### machine learning\n* SVM\n* Random forest\n* XGBoost\n* Decision tree\n\nall of the model selected use the default parameter in sci-kit learn package setting.\n\n## Result\n### network preprocess\nusing powerlaw(pathway package)\n* No filter\n![](https://i.imgur.com/wiuJ3OP.png)\n* after filter(0.7 confidence score)\n![](https://i.imgur.com/17Kl8NC.png)\n### postive control and negative control\nIn order to realize the difference between genes whether in the gene set will make the dimension reduction output change dramatically.\n### pathway member identification(multi-class classification)\nusing node embedding output as feature\nTo create target matrix need to transfer gene set list by one-hot encoding.\nFive fold cross validation, use accuracy to scoring.\ntraining:testing = 2:1\n\n![](https://i.imgur.com/yKQ4HrI.png)\n![](https://i.imgur.com/abkxO2k.png)\n\n### pathway prioritization\nUsing disease gene set to extract genes' vector in node embedding ouput with pathway location in the embedding space(mu output file) expect to analysis distance between disease and pathway.\nWith the more shorter distance,the more closer relationship between disease and pathway.\n* 算術平均數和中位數的版本都有寫 (公式在論文）\n* 結果也同樣在論文\n### drug repurposing\n同上面方法，疾病基因集的方式，選取對應基因在嵌入式空間的向量，然後取算數平均數，藥物基因集也是一樣的做法。這個部分還有計算z-score，透過固定疾病基因集，隨機選取100次藥物基因集，來計算疾病與整個藥物資料庫的距離，取得mean和standard error後，會有z-score，使用z-score來排名。\n透過相對距離(z-score)來說明藥物和疾病的關係，數值越小表示距離越近。\n\n* random selcet的大小，可能不夠大，導致結果不太穩定，但其他GSEA 選用100次，或許我們的方法與藥物資料庫的選擇，會需要重決定random select的次數\n* 算術平均數和中位數的版本都有寫（公式在論文）\n* 每個疾病基因集，各排出300個候選藥物。\n![](https://i.imgur.com/GQhR8Nh.png)\n![](https://i.imgur.com/r6gBU9j.png)\n\n### drug combination\n實作`https://www.nature.com/articles/s41467-019-09186-x`\n操作的公式主要有兩個（都在文獻中，使用networkx，來實作）\n* shortest distance\n* z-score\n* separation value\n後來有些間gene's的shortest distance計算出來，建成表。（加速）\n要達成drug combination theory，需要疾病藥物間的z-score小於零，且兩個藥物間的separation value大於零。\n所以我們將三百個候選藥物都去算出z-score。\n![](https://i.imgur.com/IpbsE5K.png)\n只有一個疾病基因集的候選藥物，z-score有小於零的存在。\n因此我們將符合條件的候選藥物，去計算倆倆之間的separation value。\n結果也發現都大於零。\n最後用兩個不同的方式來進行排序。\n![](https://i.imgur.com/ufNF6Uv.png)\n![](https://i.imgur.com/SMxfaTO.png)\n\n## 附錄\n### Cancer Driver Genes\n使用driverdbv3 `http://driverdb.tms.cmu.edu.tw`\ncaner driver gene去分析，想應證兩件事。\n1. 不同工具在同一癌症基因集，雖然找得方式和假設不同，但致癌基因在網路的角色相似。\n2. 網路嵌入式演算法有找到網路角色和特性的能力。\n![](https://i.imgur.com/Suc2zqW.png)\n![](https://i.imgur.com/D9SkpGD.png)\n![](https://i.imgur.com/iBMpEtg.png)\n![](https://i.imgur.com/KYGT6iE.png)\n\n",
+      "permalink": null,
+      "publish_link": "https://hackmd.io/@steven556610/S1Xnvvc09",
+      "read_permission": "guest",
+      "write_permission": "owner",
+      "hackmd_created_at": "2022-08-17T13:05:46.590000",
+      "hackmd_updated_at": "2022-08-27T17:27:58.280000",
+      "synced_at": "2026-05-28T13:42:12.114124"
+    }
+  ]
+}
